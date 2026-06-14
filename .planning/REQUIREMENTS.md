@@ -98,48 +98,48 @@ Traceability is populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCEN-01 | TBD | Pending |
-| SCEN-02 | TBD | Pending |
-| SCEN-03 | TBD | Pending |
-| SCEN-04 | TBD | Pending |
-| SCEN-05 | TBD | Pending |
-| FLOW-01 | TBD | Pending |
-| FLOW-02 | TBD | Pending |
-| FLOW-03 | TBD | Pending |
-| FLOW-04 | TBD | Pending |
-| FLOW-05 | TBD | Pending |
-| FLOW-06 | TBD | Pending |
-| KEYW-01 | TBD | Pending |
-| KEYW-02 | TBD | Pending |
-| KEYW-03 | TBD | Pending |
-| KEYW-04 | TBD | Pending |
-| KEYW-05 | TBD | Pending |
-| KEYW-06 | TBD | Pending |
-| KEYW-07 | TBD | Pending |
-| KEYW-08 | TBD | Pending |
-| SEMA-01 | TBD | Pending |
-| SEMA-02 | TBD | Pending |
-| SEMA-03 | TBD | Pending |
-| SEMA-04 | TBD | Pending |
-| SEMA-05 | TBD | Pending |
-| SEMA-06 | TBD | Pending |
-| SEMA-07 | TBD | Pending |
-| SEMA-08 | TBD | Pending |
-| COMP-01 | TBD | Pending |
-| COMP-02 | TBD | Pending |
-| COMP-03 | TBD | Pending |
-| QUAL-01 | TBD | Pending |
-| QUAL-02 | TBD | Pending |
-| QUAL-03 | TBD | Pending |
-| QUAL-04 | TBD | Pending |
-| QUAL-05 | TBD | Pending |
-| QUAL-06 | TBD | Pending |
+| SCEN-01 | Phase 1 | Pending |
+| SCEN-02 | Phase 1 | Pending |
+| SCEN-03 | Phase 1 | Pending |
+| SCEN-04 | Phase 1 | Pending |
+| SCEN-05 | Phase 3 | Pending |
+| FLOW-01 | Phase 1 | Pending |
+| FLOW-02 | Phase 1 | Pending |
+| FLOW-03 | Phase 1 | Pending |
+| FLOW-04 | Phase 1 | Pending |
+| FLOW-05 | Phase 5 | Pending |
+| FLOW-06 | Phase 5 | Pending |
+| KEYW-01 | Phase 2 | Pending |
+| KEYW-02 | Phase 2 | Pending |
+| KEYW-03 | Phase 2 | Pending |
+| KEYW-04 | Phase 2 | Pending |
+| KEYW-05 | Phase 2 | Pending |
+| KEYW-06 | Phase 2 | Pending |
+| KEYW-07 | Phase 2 | Pending |
+| KEYW-08 | Phase 2 | Pending |
+| SEMA-01 | Phase 3 | Pending |
+| SEMA-02 | Phase 3 | Pending |
+| SEMA-03 | Phase 3 | Pending |
+| SEMA-04 | Phase 3 | Pending |
+| SEMA-05 | Phase 3 | Pending |
+| SEMA-06 | Phase 4 | Pending |
+| SEMA-07 | Phase 4 | Pending |
+| SEMA-08 | Phase 4 | Pending |
+| COMP-01 | Phase 5 | Pending |
+| COMP-02 | Phase 5 | Pending |
+| COMP-03 | Phase 5 | Pending |
+| QUAL-01 | Phase 5 | Pending |
+| QUAL-02 | Phase 1 | Pending |
+| QUAL-03 | Phase 5 | Pending |
+| QUAL-04 | Phase 4 | Pending |
+| QUAL-05 | Phase 5 | Pending |
+| QUAL-06 | Phase 1 | Pending |
 
 **Coverage:**
 - v1 requirements: 36 total
-- Mapped to phases: 0
-- Unmapped: 36
+- Mapped to phases: 36
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-14*
-*Last updated: 2026-06-14 after initial definition*
+*Last updated: 2026-06-14 after roadmap creation*
