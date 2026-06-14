@@ -99,7 +99,7 @@ Exceptions:
 - Interactive controls have a minimum height of 44px.
 - Textareas start at 88px and auto-grow to 160px; after 160px the textarea scrolls internally.
 - The progress bar track is 8px high.
-- Focus rings are 3px wide with a 2px offset.
+- Focus rings are 4px wide with a 4px offset.
 
 ---
 
@@ -273,7 +273,7 @@ Do not add a third-party block library. Do not use icon-only buttons.
 - Native Tab/Shift+Tab order follows visual order: header, left panel, center panel, right panel.
 - Enter/Space activates buttons and Select according to native component behavior.
 - Escape closes the reset dialog and returns focus to the Reset button.
-- All interactive controls show the 3px accent focus ring. Never remove outlines without an equivalent.
+- All interactive controls show the 4px accent focus ring with a 4px offset. Never remove outlines without an equivalent.
 - Phase 1 does not define global Previous/Next shortcuts; those belong to FLOW-06 in Phase 5.
 
 ### Motion
