@@ -23,7 +23,7 @@ Use a Vite React SPA with TypeScript and Tailwind, render the meaning map direct
 - React 19.2: component UI and state-driven step rendering
 - TypeScript current stable 5.x: scenario, snapshot, and visualization contracts
 - Vite 8.0.x: fast development and static build
-- Tailwind CSS 4.3.x: projector/tablet layout and visual tokens
+- Tailwind CSS 4.3.x: fixed desktop/projector layout and visual tokens
 - Native SVG: labeled, scalable, DOM-integrated meaning map
 
 ### Expected Features
@@ -43,7 +43,7 @@ Use a Vite React SPA with TypeScript and Tailwind, render the meaning map direct
 - Textual equivalents for every significant visual
 
 **Defer (v2+):**
-- Real embeddings, cosine similarity, draggable vectors, challenge mode, scenario authoring/import, quizzes, presentation mode, and localization
+- Real embeddings, dedicated cosine-angle visualization, draggable vectors, challenge mode, scenario authoring/import, quizzes, presentation mode, and localization
 
 ### Architecture Approach
 
@@ -51,7 +51,7 @@ Store selected scenario, editable query/documents, and current step in a reducer
 
 **Major components:**
 1. Scenario catalog - curated query, documents, vectors, and teaching intent
-2. Pure search engine - tokenization, TF-IDF, distance, and stable ranking
+2. Pure search engine - tokenization, TF-IDF, Euclidean distance, cosine similarity, and stable ranking
 3. Snapshot builder - canonical derived data for all views
 4. Simulation controller - edits, reset, navigation, and Run All
 5. Step visualizations - semantic HTML plus SVG where spatial display is needed
@@ -74,7 +74,7 @@ Store selected scenario, editable query/documents, and current step in a reducer
 
 ### Phase 2: Search Engine Core
 **Rationale:** Every later view depends on trustworthy, consistent data.
-**Delivers:** Pure tokenization, TF, IDF, TF-IDF, stable ranking, Euclidean distance, snapshot builder, and unit tests.
+**Delivers:** Pure tokenization, TF, IDF, TF-IDF, stable ranking, Euclidean distance, cosine similarity, snapshot builder, and unit tests.
 **Uses:** TypeScript and Vitest.
 **Implements:** Functional core and canonical snapshot.
 
@@ -85,12 +85,12 @@ Store selected scenario, editable query/documents, and current step in a reducer
 
 ### Phase 4: Semantic Learning Journey
 **Rationale:** Build the conceptual bridge only after keyword limitations are visible.
-**Delivers:** Keyword limitation step, curated vectors, labeled SVG meaning map, Euclidean distances, and semantic ranking.
+**Delivers:** Keyword limitation step, curated vectors, labeled SVG meaning map, Euclidean distance, cosine similarity, a metric toggle, and semantic ranking.
 **Avoids:** Presenting toy vectors as generated embeddings.
 
 ### Phase 5: Comparison, Accessibility, and Classroom Readiness
 **Rationale:** Final comparison and cross-cutting quality require both pipelines to exist.
-**Delivers:** Side-by-side final rankings, rank-movement explanations, Run All behavior, keyboard/reduced-motion support, projector/tablet polish, smoke tests, and static deployment verification.
+**Delivers:** Side-by-side final rankings, rank-movement explanations, Run All behavior, keyboard/reduced-motion support, fixed desktop/projector polish, smoke tests, and static deployment verification.
 **Avoids:** Color-only meaning, fragile demos, and deployment surprises.
 
 ### Phase Ordering Rationale
@@ -104,7 +104,7 @@ Store selected scenario, editable query/documents, and current step in a reducer
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 1:** UI design contract for projector/tablet panel behavior and teaching-step layout.
+- **Phase 1:** UI design contract for the fixed desktop/projector panel behavior and teaching-step layout.
 - **Phase 4:** Accessible SVG labeling and precise behavior when users edit text backed by curated vectors.
 - **Phase 5:** Static-host path configuration and classroom display verification.
 

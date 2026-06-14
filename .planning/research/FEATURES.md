@@ -35,7 +35,7 @@
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
 | Real embeddings | Feels authentic | Makes coordinates and ranking opaque and may require services | Manually curated 2D vectors with explicit caveat |
-| Combined final score | Produces one neat ranking | Requires arbitrary normalization/weights and hides the lesson | Compare keyword and semantic rankings side by side |
+| Combined final score | Produces one neat ranking | Requires arbitrary normalization/weights and hides the lesson | Compare keyword and selected semantic rankings side by side |
 | Automatic timed playback | Looks polished in demos | Students lose control of pacing and accessibility suffers | Run All reveals steps with pause/cancel controls or immediate completion |
 | Dense formula-first presentation | Appears rigorous | Overloads first-time learners before intuition forms | Plain-language explanation, worked values, then formula |
 | Unlimited documents | Feels flexible | Creates clutter and weakens projector readability | Enforce the five-to-ten document teaching range |
@@ -49,7 +49,7 @@ Scenario data and reset
         -> Canonical simulation snapshot
             -> Step visualizations
                 -> Keyword ranking
-                -> Semantic ranking
+                -> Euclidean and cosine semantic ranking
                     -> Side-by-side final comparison
 
 Accessible semantic structure
@@ -76,9 +76,9 @@ Accessible semantic structure
 - [ ] TF, IDF, TF-IDF tables with visible worked calculations
 - [ ] Keyword score bars, deterministic ranking, and explanations
 - [ ] Keyword-limitation bridge into semantic search
-- [ ] Labeled 2D meaning map and Euclidean distance table/lines
+- [ ] Labeled 2D meaning map, Euclidean distance table/lines, cosine values, and a metric toggle
 - [ ] Side-by-side keyword and semantic final rankings
-- [ ] Projector/tablet responsive layout with keyboard and non-color cues
+- [ ] Fixed desktop/projector layout with keyboard and non-color cues
 - [ ] Unit tests for the domain engine and smoke tests for the guided flow
 
 ### Add After Validation (v1.x)
@@ -90,7 +90,7 @@ Accessible semantic structure
 
 ### Future Consideration (v2+)
 
-- [ ] Cosine similarity and angle visualization - adds mathematical depth after Euclidean intuition
+- [ ] Dedicated cosine-angle visualization - adds geometric depth beyond the v1 numeric cosine comparison
 - [ ] Draggable/editable vectors - useful for experimentation but needs accessible alternatives
 - [ ] Challenge mode - valuable only after core explanations are proven
 - [ ] Scenario editor - increases validation, persistence, and authoring complexity
@@ -108,7 +108,7 @@ Accessible semantic structure
 | Projector/accessibility baseline | HIGH | MEDIUM | P1 |
 | Presentation mode | MEDIUM | MEDIUM | P2 |
 | Quiz checkpoints | MEDIUM | MEDIUM | P2 |
-| Cosine similarity | MEDIUM | HIGH | P3 |
+| Dedicated cosine-angle visualization | MEDIUM | HIGH | P3 |
 | Dragging vectors | MEDIUM | HIGH | P3 |
 
 ## Comparable Product Pattern Analysis

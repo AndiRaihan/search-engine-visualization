@@ -40,7 +40,7 @@ The controller owns only editable inputs and navigation. A pure derivation layer
 | Component | Responsibility | Typical Implementation |
 |-----------|----------------|------------------------|
 | Scenario catalog | Validated built-in teaching data and vectors | Typed immutable TypeScript objects |
-| Search engine | Tokenization, statistics, scores, distances, stable ranking | Pure functions with unit tests |
+| Search engine | Tokenization, statistics, scores, Euclidean/cosine metrics, stable ranking | Pure functions with unit tests |
 | Snapshot builder | Derive all values needed by every step | Pure composition function/selectors |
 | Simulation controller | Scenario selection, edits, reset, current step, Run All | `useReducer` with explicit actions |
 | Step registry | Ordered metadata and visualization association | Typed array keyed by stable step IDs |
@@ -117,7 +117,8 @@ type SimulationSnapshot = {
   documents: DocumentAnalysis[];
   idfByTerm: Record<string, number>;
   keywordRanking: RankedDocument[];
-  semanticRanking: RankedDocument[];
+  euclideanRanking: RankedDocument[];
+  cosineRanking: RankedDocument[];
 };
 ```
 
