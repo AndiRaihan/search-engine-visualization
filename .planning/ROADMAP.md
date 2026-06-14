@@ -19,7 +19,7 @@ Build the simulation as five vertical classroom slices. The first phase establis
 ## Phase Details
 
 ### Phase 1: Guided Classroom Shell
-**Goal:** Users can run the first usable classroom slice by selecting a scenario, editing its source text, navigating the lesson shell, and resetting safely.
+**Goal:** As a high school student, I want to open a scenario-driven search lesson, edit its source material, navigate its steps, and reset safely, so that I can inspect how a search engine processes a query in class.
 **Mode:** mvp
 **Depends on:** Nothing (first phase)
 **Requirements:** SCEN-01, SCEN-02, SCEN-03, SCEN-04, FLOW-01, FLOW-02, FLOW-03, FLOW-04, QUAL-02, QUAL-06
@@ -32,9 +32,9 @@ Build the simulation as five vertical classroom slices. The first phase establis
 **Plans:** 3 plans
 
 Plans:
-- [ ] 01-01: Scaffold the tested static React application and establish the classroom visual system.
-- [ ] 01-02: Define typed scenarios, immutable defaults, and the reducer-driven simulation controller.
-- [ ] 01-03: Build the three-panel shell, editable input panel, step registry, progress, navigation, and reset flow.
+- [ ] 01-01-PLAN.md — Scaffold the tested static React walking skeleton and classroom visual system.
+- [ ] 01-02-PLAN.md — Deliver typed local scenarios and the reducer-backed editable workbench.
+- [ ] 01-03-PLAN.md — Complete registered navigation, safe reset, accessibility, and phase verification.
 
 ### Phase 2: Keyword Search Journey
 **Goal:** Users can follow a complete keyword-search lesson from tokenization to explained TF-IDF ranking.
