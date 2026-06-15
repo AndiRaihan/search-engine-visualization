@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
+
+  --color-dominant: #F5F7F4;
+  --color-secondary: #FFFFFF;
+  --color-accent-fill: #087F8C;
+  --color-destructive-fill: #B42318;
+  --color-primary-text: #17212B;
+  --color-muted-text: #465766;
+  --color-border-custom: #AAB7BE;
+  --color-subtle-surface: #E7EEF0;
+  --color-accent-contrast: #FFFFFF;
+  --color-destructive-surface: #FDECEA;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('./assets/fonts/AtkinsonHyperlegible-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('./assets/fonts/AtkinsonHyperlegible-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-dominant);
+    color: var(--color-primary-text);
+    font-family: var(--font-sans);
+    margin: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-primary-text);
+    font-weight: 700;
+  }
+
+  /* Accessible outline / focus ring */
+  *:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 4px var(--color-accent-fill) !important;
+    outline-offset: 4px !important;
+  }
+}
+
+@layer utilities {
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
