@@ -1,5 +1,6 @@
 import { describe, test, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { InputPanel } from './InputPanel'
 import { buildSessionFromScenario } from '@/domain/simulation'
 import { scenarios } from '@/content/scenarios'
@@ -16,6 +17,7 @@ describe('InputPanel Component', () => {
         onScenarioChange={vi.fn()}
         onQueryChange={vi.fn()}
         onDocumentChange={vi.fn()}
+        onResetClick={vi.fn()}
       />
     )
 
@@ -33,6 +35,7 @@ describe('InputPanel Component', () => {
         onScenarioChange={vi.fn()}
         onQueryChange={vi.fn()}
         onDocumentChange={vi.fn()}
+        onResetClick={vi.fn()}
       />
     )
 
@@ -45,6 +48,7 @@ describe('InputPanel Component', () => {
         onScenarioChange={vi.fn()}
         onQueryChange={vi.fn()}
         onDocumentChange={vi.fn()}
+        onResetClick={vi.fn()}
       />
     )
 
@@ -60,6 +64,7 @@ describe('InputPanel Component', () => {
         onScenarioChange={vi.fn()}
         onQueryChange={handleQueryChange}
         onDocumentChange={vi.fn()}
+        onResetClick={vi.fn()}
       />
     )
 
@@ -78,6 +83,7 @@ describe('InputPanel Component', () => {
         onScenarioChange={vi.fn()}
         onQueryChange={vi.fn()}
         onDocumentChange={handleDocumentChange}
+        onResetClick={vi.fn()}
       />
     )
 
@@ -103,6 +109,7 @@ describe('InputPanel Component', () => {
         onScenarioChange={vi.fn()}
         onQueryChange={vi.fn()}
         onDocumentChange={vi.fn()}
+        onResetClick={vi.fn()}
       />
     )
 
@@ -111,5 +118,24 @@ describe('InputPanel Component', () => {
 
     const docInput = screen.getByLabelText(/Document 1 text/i) as HTMLTextAreaElement
     expect(docInput.value).toBe('<div>test</div>')
+  })
+
+  test('triggers callback on reset button click', async () => {
+    const handleResetClick = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <InputPanel
+        session={session}
+        isEdited={false}
+        onScenarioChange={vi.fn()}
+        onQueryChange={vi.fn()}
+        onDocumentChange={vi.fn()}
+        onResetClick={handleResetClick}
+      />
+    )
+
+    const resetButton = screen.getByRole('button', { name: /Reset scenario/i })
+    await user.click(resetButton)
+    expect(handleResetClick).toHaveBeenCalled()
   })
 })

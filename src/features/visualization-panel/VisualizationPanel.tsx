@@ -1,0 +1,56 @@
+import React from 'react'
+import type { StepId } from '@/domain/simulation'
+
+interface VisualizationPanelProps {
+  activeStepId: StepId
+  activeStepTitle: string
+  setupHeadingRef?: React.RefObject<HTMLHeadingElement | null>
+}
+
+export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
+  activeStepId,
+  activeStepTitle,
+  setupHeadingRef,
+}) => {
+  const isSetup = activeStepId === 'setup'
+
+  return (
+    <section
+      aria-label="Visualization"
+      className="bg-secondary border border-border-custom rounded-[12px] p-lg border-t-2 border-t-accent-fill flex flex-col gap-xl min-h-[300px]"
+    >
+      {isSetup ? (
+        <div className="flex flex-col gap-md transition-opacity duration-150 ease-in-out motion-reduce:transition-none">
+          <h2
+            ref={setupHeadingRef}
+            tabIndex={-1}
+            className="text-heading font-weight-bold text-primary-text focus:outline-none"
+          >
+            Your search workspace
+          </h2>
+          <p className="text-body text-muted-text">
+            Choose a scenario, review the query and documents, then start the search.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-xl transition-opacity duration-150 ease-in-out motion-reduce:transition-none">
+          <div className="flex flex-col gap-md">
+            <h2 className="text-heading font-weight-bold text-primary-text">
+              {activeStepTitle} is ready
+            </h2>
+            <p className="text-body text-muted-text">
+              This lesson view will show what the search engine calculates at this step.
+            </p>
+          </div>
+
+          {/* Labeled Diagram Frame */}
+          <div className="border border-dashed border-border-custom rounded-[8px] p-2xl flex items-center justify-center bg-subtle-surface">
+            <span className="text-label text-muted-text uppercase tracking-wider">
+              [ {activeStepTitle} Visuals Placeholder ]
+            </span>
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}

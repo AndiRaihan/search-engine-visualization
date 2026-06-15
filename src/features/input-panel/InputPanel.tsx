@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -19,24 +20,38 @@ interface InputPanelProps {
   onScenarioChange: (scenario: Scenario) => void
   onQueryChange: (query: string) => void
   onDocumentChange: (docId: string, text: string) => void
+  onResetClick: () => void
+  resetButtonRef?: React.RefObject<HTMLButtonElement | null>
+  queryInputRef?: React.RefObject<HTMLTextAreaElement | null>
 }
 
 // Helper component for auto-growing textarea
-const AutoGrowingTextarea = ({
-  value,
-  onChange,
-  id,
-  ariaLabel,
-}: {
-  value: string
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-  id?: string
-  ariaLabel?: string
-}) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+const AutoGrowingTextarea = React.forwardRef<
+  HTMLTextAreaElement,
+  {
+    value: string
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+    id?: string
+    ariaLabel?: string
+  }
+>(({ value, onChange, id, ariaLabel }, ref) => {
+  const localRef = useRef<HTMLTextAreaElement | null>(null)
+
+  // Combine forwarded ref and local ref
+  const setRefs = React.useCallback(
+    (node: HTMLTextAreaElement | null) => {
+      localRef.current = node
+      if (typeof ref === 'function') {
+        ref(node)
+      } else if (ref) {
+        (ref as React.MutableRefObject<HTMLTextAreaElement | null>).current = node
+      }
+    },
+    [ref]
+  )
 
   const adjustHeight = () => {
-    const textarea = textareaRef.current
+    const textarea = localRef.current
     if (textarea) {
       textarea.style.height = 'auto'
       // Clamp scrollHeight between 88px and 160px
@@ -51,7 +66,7 @@ const AutoGrowingTextarea = ({
 
   return (
     <Textarea
-      ref={textareaRef}
+      ref={setRefs}
       id={id}
       aria-label={ariaLabel}
       value={value}
@@ -59,7 +74,9 @@ const AutoGrowingTextarea = ({
       className="w-full text-body border-border-custom rounded-[4px] bg-secondary text-primary-text min-h-[88px] max-h-[160px] overflow-y-auto resize-none p-sm focus-visible:ring-4 focus-visible:ring-accent-fill focus-visible:ring-offset-4"
     />
   )
-}
+})
+
+AutoGrowingTextarea.displayName = 'AutoGrowingTextarea'
 
 export const InputPanel: React.FC<InputPanelProps> = ({
   session,
@@ -67,6 +84,9 @@ export const InputPanel: React.FC<InputPanelProps> = ({
   onScenarioChange,
   onQueryChange,
   onDocumentChange,
+  onResetClick,
+  resetButtonRef,
+  queryInputRef,
 }) => {
   const currentScenario = scenarios.find((s) => s.id === session.scenarioId)
 
@@ -119,6 +139,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
           Query
         </Label>
         <AutoGrowingTextarea
+          ref={queryInputRef}
           id="query-input"
           value={session.query}
           onChange={(e) => onQueryChange(e.target.value)}
@@ -153,16 +174,25 @@ export const InputPanel: React.FC<InputPanelProps> = ({
         </div>
       </div>
 
-      {/* Panel-level status row (only shows Edited badge when dirty) */}
-      <div className="min-h-[28px] flex items-center justify-between border-t border-border-custom pt-md mt-xs">
+      {/* Panel-level status row with Reset button */}
+      <div className="min-h-[44px] flex items-center justify-between border-t border-border-custom pt-md mt-xs gap-sm">
         <span className="text-xs text-muted-text">
           {isEdited ? 'Changes made to defaults' : 'Using scenario defaults'}
         </span>
-        {isEdited && (
-          <Badge className="bg-accent-fill text-accent-contrast hover:bg-accent-fill shadow-none rounded-[4px] px-sm py-xs text-xs font-weight-bold">
-            Edited
-          </Badge>
-        )}
+        <div className="flex items-center gap-sm">
+          {isEdited && (
+            <Badge className="bg-accent-fill text-accent-contrast hover:bg-accent-fill shadow-none rounded-[4px] px-sm py-xs text-xs font-weight-bold">
+              Edited
+            </Badge>
+          )}
+          <Button
+            ref={resetButtonRef}
+            onClick={onResetClick}
+            className="min-h-[44px] px-md font-weight-bold rounded-[4px] border border-border-custom bg-secondary text-primary-text hover:bg-subtle-surface cursor-pointer shadow-none text-body"
+          >
+            Reset scenario
+          </Button>
+        </div>
       </div>
     </section>
   )
