@@ -60,7 +60,7 @@ export const LessonPanel: React.FC<LessonPanelProps> = ({
             <span className="text-label text-muted-text font-tabular">
               Step {currentStepIndex} of {totalSteps}
             </span>
-            <Badge className="bg-accent-fill text-accent-contrast hover:bg-accent-fill shadow-none rounded-[4px] px-sm py-xs text-xs font-weight-bold">
+            <Badge className="bg-accent-fill text-accent-contrast hover:bg-accent-fill shadow-none rounded-[4px] px-3 py-1 text-xs font-weight-bold h-auto">
               Active
             </Badge>
           </div>

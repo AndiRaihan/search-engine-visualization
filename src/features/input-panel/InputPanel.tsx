@@ -181,7 +181,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
         </span>
         <div className="flex items-center gap-sm">
           {isEdited && (
-            <Badge className="bg-accent-fill text-accent-contrast hover:bg-accent-fill shadow-none rounded-[4px] px-sm py-xs text-xs font-weight-bold">
+            <Badge className="bg-accent-fill text-accent-contrast hover:bg-accent-fill shadow-none rounded-[4px] px-3 py-1 text-xs font-weight-bold h-auto">
               Edited
             </Badge>
           )}
