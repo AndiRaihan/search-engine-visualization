@@ -66,9 +66,17 @@ Plans:
 
 Plans:
 
-- [ ] 02-01: Implement the pure keyword calculation pipeline and canonical snapshot data.
-- [ ] 02-02: Build tokenization, matching, TF, and IDF teaching steps.
-- [ ] 02-03: Build TF-IDF scoring, score bars, deterministic ranking, and evidence-based explanations.
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Implement the pure keyword calculation pipeline and canonical snapshot data.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 02-02-PLAN.md — Build tokenization, matching, TF, and IDF teaching steps from one shared snapshot.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 02-03-PLAN.md — Build TF-IDF scoring, score bars, deterministic ranking, and evidence-based explanations.
 
 ### Phase 3: Euclidean Meaning Journey
 
