@@ -52,7 +52,7 @@ completed: 2026-06-15
 
 ## Task Commits
 
-To be committed upon phase completion.
+- **Wave 3 Integration, Safe Reset, and Verification:** `7267cb8` (feat)
 
 ## Files Created/Modified
 - `src/features/lesson-panel/ResetFlow.test.tsx` - Scenario reset flow integration tests.
