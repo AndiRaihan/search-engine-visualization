@@ -1,0 +1,148 @@
+import type { Scenario } from '@/domain/simulation'
+
+export const scenarios: readonly Scenario[] = [
+  {
+    id: 'exact-match-fails',
+    title: 'Naive Exact Match Fails',
+    description: 'See why searching for an exact phrase is too strict and misses relevant documents.',
+    learningGoal: 'Exact phrase matching is too strict.',
+    defaultQuery: 'the iphone',
+    documents: [
+      { id: 'doc-1', text: 'The latest iPhone with a titanium frame.' },
+      { id: 'doc-2', text: 'The battery on this phone is great.' },
+      { id: 'doc-3', text: 'An Apple device that fits in the pocket.' },
+      { id: 'doc-4', text: 'This iPhone is the best iPhone for photos.' },
+      { id: 'doc-5', text: 'Samsung Galaxy: the ultimate Android phone.' },
+      { id: 'doc-6', text: 'A mobile device made by Apple.' },
+      { id: 'doc-7', text: 'Fresh apple pie recipe with cinnamon.' },
+    ],
+    vectors: {
+      query: [0.88, 0.78],
+      documents: {
+        'doc-1': [0.90, 0.80],
+        'doc-2': [0.65, 0.72],
+        'doc-3': [0.82, 0.75],
+        'doc-4': [0.88, 0.77],
+        'doc-5': [0.60, 0.70],
+        'doc-6': [0.84, 0.74],
+        'doc-7': [0.70, 0.10],
+      },
+    },
+  },
+  {
+    id: 'common-words-noisy',
+    title: 'Common Words Are Noisy',
+    description: 'Learn how common terms like "the" can skew rankings if we treat all words equally.',
+    learningGoal: '“The” appears everywhere and should not dominate the results.',
+    defaultQuery: 'the iphone',
+    documents: [
+      { id: 'doc-1', text: 'The latest iPhone with a titanium frame.' },
+      { id: 'doc-2', text: 'The battery on this phone is great.' },
+      { id: 'doc-3', text: 'An Apple device that fits in the pocket.' },
+      { id: 'doc-4', text: 'This iPhone is the best iPhone for photos.' },
+      { id: 'doc-5', text: 'Samsung Galaxy: the ultimate Android phone.' },
+      { id: 'doc-6', text: 'A mobile device made by Apple.' },
+      { id: 'doc-7', text: 'Fresh apple pie recipe with cinnamon.' },
+    ],
+    vectors: {
+      query: [0.88, 0.78],
+      documents: {
+        'doc-1': [0.90, 0.80],
+        'doc-2': [0.65, 0.72],
+        'doc-3': [0.82, 0.75],
+        'doc-4': [0.88, 0.77],
+        'doc-5': [0.60, 0.70],
+        'doc-6': [0.84, 0.74],
+        'doc-7': [0.70, 0.10],
+      },
+    },
+  },
+  {
+    id: 'tfidf-ranking',
+    title: 'TF-IDF Ranking',
+    description: 'Inspect how term frequency and uniqueness weight combine to create smart relevance rankings.',
+    learningGoal: 'Documents with more meaningful rare terms should rank higher.',
+    defaultQuery: 'the iphone',
+    documents: [
+      { id: 'doc-1', text: 'The latest iPhone with a titanium frame.' },
+      { id: 'doc-2', text: 'The battery on this phone is great.' },
+      { id: 'doc-3', text: 'An Apple device that fits in the pocket.' },
+      { id: 'doc-4', text: 'This iPhone is the best iPhone for photos.' },
+      { id: 'doc-5', text: 'Samsung Galaxy: the ultimate Android phone.' },
+      { id: 'doc-6', text: 'A mobile device made by Apple.' },
+      { id: 'doc-7', text: 'Fresh apple pie recipe with cinnamon.' },
+    ],
+    vectors: {
+      query: [0.88, 0.78],
+      documents: {
+        'doc-1': [0.90, 0.80],
+        'doc-2': [0.65, 0.72],
+        'doc-3': [0.82, 0.75],
+        'doc-4': [0.88, 0.77],
+        'doc-5': [0.60, 0.70],
+        'doc-6': [0.84, 0.74],
+        'doc-7': [0.70, 0.10],
+      },
+    },
+  },
+  {
+    id: 'keyword-misses-meaning',
+    title: 'Keyword Search Misses Meaning',
+    description: 'See why synonym-based search fails when using naive keyword matching algorithms.',
+    learningGoal: 'A document can be relevant even if it does not share the exact same words.',
+    defaultQuery: 'apple phone',
+    documents: [
+      { id: 'doc-1', text: 'The latest iPhone with a titanium frame.' },
+      { id: 'doc-2', text: 'The battery on this phone is great.' },
+      { id: 'doc-3', text: 'An Apple device that fits in the pocket.' },
+      { id: 'doc-4', text: 'This iPhone is the best iPhone for photos.' },
+      { id: 'doc-5', text: 'Samsung Galaxy: the ultimate Android phone.' },
+      { id: 'doc-6', text: 'A mobile device made by Apple.' },
+      { id: 'doc-7', text: 'Fresh apple pie recipe with cinnamon.' },
+    ],
+    vectors: {
+      query: [0.80, 0.70],
+      documents: {
+        'doc-1': [0.90, 0.80],
+        'doc-2': [0.65, 0.72],
+        'doc-3': [0.82, 0.75],
+        'doc-4': [0.88, 0.77],
+        'doc-5': [0.60, 0.70],
+        'doc-6': [0.84, 0.74],
+        'doc-7': [0.70, 0.10],
+      },
+    },
+  },
+  {
+    id: 'meaning-map-distance',
+    title: 'Meaning Map / Distance',
+    description: 'Map query and documents to 2D concepts and rank them by geometric closeness.',
+    learningGoal: 'Once text becomes vectors, search can be understood as measuring closeness.',
+    defaultQuery: 'apple phone',
+    documents: [
+      { id: 'doc-1', text: 'The latest iPhone with a titanium frame.' },
+      { id: 'doc-2', text: 'The battery on this phone is great.' },
+      { id: 'doc-3', text: 'An Apple device that fits in the pocket.' },
+      { id: 'doc-4', text: 'This iPhone is the best iPhone for photos.' },
+      { id: 'doc-5', text: 'Samsung Galaxy: the ultimate Android phone.' },
+      { id: 'doc-6', text: 'A mobile device made by Apple.' },
+      { id: 'doc-7', text: 'Fresh apple pie recipe with cinnamon.' },
+    ],
+    vectors: {
+      query: [0.80, 0.70],
+      documents: {
+        'doc-1': [0.90, 0.80],
+        'doc-2': [0.65, 0.72],
+        'doc-3': [0.82, 0.75],
+        'doc-4': [0.88, 0.77],
+        'doc-5': [0.60, 0.70],
+        'doc-6': [0.84, 0.74],
+        'doc-7': [0.70, 0.10],
+      },
+    },
+  },
+]
+
+export function getScenarioById(id: string): Scenario | undefined {
+  return scenarios.find((s) => s.id === id)
+}
