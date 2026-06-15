@@ -49,9 +49,8 @@ completed: 2026-06-15
 
 ## Task Commits
 
-Each task was committed atomically:
-1. **Task 1: Scaffold stack and write RED test** - `c89e1b2` (feat)
-2. **Task 2: Implement classroom frame and GREEN interaction** - `4a51e60` (feat/style)
+Each task was committed in a single phase commit:
+1. **Task 1 & Task 2: Scaffold stack, setup fonts, and implement classroom frame** - `18ac34d` (feat/style)
 
 ## Files Created/Modified
 - `src/App.tsx` - App frame rendering three panels (Search inputs, Lesson steps, Visualization).
