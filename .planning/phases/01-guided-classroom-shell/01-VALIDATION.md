@@ -1,9 +1,9 @@
 ---
 phase: 1
 slug: guided-classroom-shell
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: verified
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-14
 ---
 
@@ -38,14 +38,14 @@ created: 2026-06-14
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 01-01-01 | 01 | 1 | QUAL-06 | T-01-02 | Package versions and sources are verified before installation | build smoke | `npm run build` | ❌ W0 | ⬜ pending |
-| 01-01-02 | 01 | 1 | QUAL-02 | N/A | Projector-safe tokens preserve readable contrast and visible focus | build + manual | `npm run build` | ❌ W0 | ⬜ pending |
-| 01-02-01 | 02 | 1 | SCEN-01, SCEN-04 | T-01-01 | Scenario defaults remain immutable and user text is treated as plain text | unit | `npm run test -- --run src/domain/session/sessionReducer.test.ts` | ❌ W0 | ⬜ pending |
-| 01-02-02 | 02 | 1 | FLOW-02, FLOW-03 | N/A | Reducer bounds prevent navigation outside the registered sequence | unit | `npm run test -- --run src/domain/session/sessionReducer.test.ts` | ❌ W0 | ⬜ pending |
-| 01-03-01 | 03 | 2 | SCEN-01, SCEN-02, SCEN-03 | T-01-01 | Edited content is rendered as text and updates only the selected field | component | `npm run test -- --run src/features/input-panel` | ❌ W0 | ⬜ pending |
-| 01-03-02 | 03 | 2 | SCEN-04 | T-01-03 | Reset confirmation is keyboard operable and only appears for edited content | component | `npm run test -- --run src/features/lesson-panel/ResetFlow.test.tsx` | ❌ W0 | ⬜ pending |
-| 01-03-03 | 03 | 2 | FLOW-01, FLOW-02, FLOW-03, FLOW-04 | N/A | Navigation labels, disabled boundaries, and progress remain synchronized | component | `npm run test -- --run src/features/lesson-panel` | ❌ W0 | ⬜ pending |
-| 01-03-04 | 03 | 2 | QUAL-02, QUAL-06 | N/A | Complete shell remains readable and produces a backend-free static bundle | full suite | `npm run test -- --run && npm run build` | ❌ W0 | ⬜ pending |
+| 01-01-01 | 01 | 1 | QUAL-06 | T-01-02 | Package versions and sources are verified before installation | build smoke | `npm run build` | ✅ | ✅ green |
+| 01-01-02 | 01 | 1 | QUAL-02 | N/A | Projector-safe tokens preserve readable contrast and visible focus | build + manual | `npm run build` | ✅ | ✅ green |
+| 01-02-01 | 02 | 1 | SCEN-01, SCEN-04 | T-01-01 | Scenario defaults remain immutable and user text is treated as plain text | unit | `npm run test -- --run src/domain/simulation.test.ts` | ✅ | ✅ green |
+| 01-02-02 | 02 | 1 | FLOW-02, FLOW-03 | N/A | Reducer bounds prevent navigation outside the registered sequence | unit | `npm run test -- --run src/domain/simulation.test.ts` | ✅ | ✅ green |
+| 01-03-01 | 03 | 2 | SCEN-01, SCEN-02, SCEN-03 | T-01-01 | Edited content is rendered as text and updates only the selected field | component | `npm run test -- --run src/features/input-panel` | ✅ | ✅ green |
+| 01-03-02 | 03 | 2 | SCEN-04 | T-01-03 | Reset confirmation is keyboard operable and only appears for edited content | component | `npm run test -- --run src/features/lesson-panel/ResetFlow.test.tsx` | ✅ | ✅ green |
+| 01-03-03 | 03 | 2 | FLOW-01, FLOW-02, FLOW-03, FLOW-04 | N/A | Navigation labels, disabled boundaries, and progress remain synchronized | component | `npm run test -- --run src/features/lesson-panel` | ✅ | ✅ green |
+| 01-03-04 | 03 | 2 | QUAL-02, QUAL-06 | N/A | Complete shell remains readable and produces a backend-free static bundle | full suite | `npm run test -- --run && npm run build` | ✅ | ✅ green |
 
 Threat references for plan threat models:
 
@@ -80,13 +80,13 @@ Threat references for plan threat models:
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verification or explicit Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verification
-- [ ] Wave 0 covers all missing test and configuration references
-- [ ] No watch-mode flags are used in verification commands
-- [ ] Feedback latency remains below 60 seconds
-- [ ] Full suite and static production build pass
-- [ ] Manual projector and dialog checks pass
-- [ ] `nyquist_compliant: true` is set in frontmatter
+- [x] All tasks have automated verification or explicit Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verification
+- [x] Wave 0 covers all missing test and configuration references
+- [x] No watch-mode flags are used in verification commands
+- [x] Feedback latency remains below 60 seconds
+- [x] Full suite and static production build pass
+- [x] Manual projector and dialog checks pass
+- [x] `nyquist_compliant: true` is set in frontmatter
 
-**Approval:** pending
+**Approval:** verified 2026-06-15
