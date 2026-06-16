@@ -12,7 +12,7 @@ Build the simulation as five vertical classroom slices. The first phase establis
 - Decimal phases (2.1, 2.2): Urgent insertions marked `INSERTED`
 
 - [ ] **Phase 1: Guided Classroom Shell** - Deliver a static, scenario-driven simulation that users can edit, reset, and navigate.
-- [ ] **Phase 2: Keyword Search Journey** - Teach tokenization through deterministic TF-IDF ranking with visible evidence.
+- [x] **Phase 2: Keyword Search Journey** - Teach tokenization through deterministic TF-IDF ranking with visible evidence. (completed 2026-06-16)
 - [ ] **Phase 3: Euclidean Meaning Journey** - Bridge from keyword limitations to curated vectors and distance-based semantic ranking.
 - [ ] **Phase 4: Cosine Comparison** - Add cosine similarity, metric switching, and trustworthy semantic explanations.
 - [ ] **Phase 5: Final Comparison and Release Readiness** - Compare both ranking models and harden the complete classroom flow.
@@ -62,7 +62,7 @@ Plans:
   3. User can see common terms weakened and rare terms strengthened through labels and visual treatment that does not depend on color alone.
   4. User can view a deterministic keyword ranking whose explanation cites the visible TF-IDF contributions and updates after text edits.
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 
@@ -76,7 +76,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03-PLAN.md — Build TF-IDF scoring, score bars, deterministic ranking, and evidence-based explanations.
+- [x] 02-03-PLAN.md — Build TF-IDF scoring, score bars, deterministic ranking, and evidence-based explanations.
 
 ### Phase 3: Euclidean Meaning Journey
 
@@ -150,7 +150,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Guided Classroom Shell | 0/3 | Not started | - |
-| 2. Keyword Search Journey | 2/3 | In Progress|  |
+| 2. Keyword Search Journey | 3/3 | Complete   | 2026-06-16 |
 | 3. Euclidean Meaning Journey | 0/3 | Not started | - |
 | 4. Cosine Comparison | 0/2 | Not started | - |
 | 5. Final Comparison and Release Readiness | 0/3 | Not started | - |
