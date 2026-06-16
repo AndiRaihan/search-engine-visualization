@@ -24,14 +24,14 @@
 
 ### Keyword Search
 
-- [ ] **KEYW-01**: User can see the query and documents tokenized into lowercase words with basic punctuation removed.
-- [ ] **KEYW-02**: User can see which query tokens match each document and which query tokens are missing.
-- [ ] **KEYW-03**: User can inspect each query term's count, document word count, and term-frequency value rounded to three decimal places.
-- [ ] **KEYW-04**: User can inspect each query term's document frequency and inverse-document-frequency value.
-- [ ] **KEYW-05**: User can see common query terms visually weakened and rare query terms visually strengthened without relying on color alone.
-- [ ] **KEYW-06**: User can inspect each query-term/document TF-IDF value and the resulting document keyword score.
-- [ ] **KEYW-07**: User can see keyword results ranked by descending full-precision TF-IDF score with deterministic tie handling.
-- [ ] **KEYW-08**: User can read a result explanation generated from visible TF-IDF contributions, including after query or document edits.
+- [x] **KEYW-01**: User can see the query and documents tokenized into lowercase words with basic punctuation removed.
+- [x] **KEYW-02**: User can see which query tokens match each document and which query tokens are missing.
+- [x] **KEYW-03**: User can inspect each query term's count, document word count, and term-frequency value rounded to three decimal places.
+- [x] **KEYW-04**: User can inspect each query term's document frequency and inverse-document-frequency value.
+- [x] **KEYW-05**: User can see common query terms visually weakened and rare query terms visually strengthened without relying on color alone.
+- [x] **KEYW-06**: User can inspect each query-term/document TF-IDF value and the resulting document keyword score.
+- [x] **KEYW-07**: User can see keyword results ranked by descending full-precision TF-IDF score with deterministic tie handling.
+- [x] **KEYW-08**: User can read a result explanation generated from visible TF-IDF contributions, including after query or document edits.
 
 ### Semantic Search
 
@@ -109,14 +109,14 @@ Traceability is populated during roadmap creation.
 | FLOW-04 | Phase 1 | Pending |
 | FLOW-05 | Phase 5 | Pending |
 | FLOW-06 | Phase 5 | Pending |
-| KEYW-01 | Phase 2 | Pending |
-| KEYW-02 | Phase 2 | Pending |
-| KEYW-03 | Phase 2 | Pending |
-| KEYW-04 | Phase 2 | Pending |
-| KEYW-05 | Phase 2 | Pending |
-| KEYW-06 | Phase 2 | Pending |
-| KEYW-07 | Phase 2 | Pending |
-| KEYW-08 | Phase 2 | Pending |
+| KEYW-01 | Phase 2 | Complete |
+| KEYW-02 | Phase 2 | Complete |
+| KEYW-03 | Phase 2 | Complete |
+| KEYW-04 | Phase 2 | Complete |
+| KEYW-05 | Phase 2 | Complete |
+| KEYW-06 | Phase 2 | Complete |
+| KEYW-07 | Phase 2 | Complete |
+| KEYW-08 | Phase 2 | Complete |
 | SEMA-01 | Phase 3 | Pending |
 | SEMA-02 | Phase 3 | Pending |
 | SEMA-03 | Phase 3 | Pending |
@@ -136,6 +136,7 @@ Traceability is populated during roadmap creation.
 | QUAL-06 | Phase 1 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 36 total
 - Mapped to phases: 36
 - Unmapped: 0
