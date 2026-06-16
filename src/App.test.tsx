@@ -100,3 +100,72 @@ test('keyword ranking integration test: navigate to Keyword Ranking, edit query 
   expect(screen.getAllByText(/Term 'cinnamon' contributed/).length).toBeGreaterThanOrEqual(2)
 })
 
+test('semantic notice regression and XSS safety', async () => {
+  const user = userEvent.setup()
+  const { container } = render(<App />)
+
+  // Start the search
+  const startButton = screen.getByRole('button', { name: /Start Search/i })
+  await user.click(startButton)
+
+  // Navigate to Keyword Ranking step (5 clicks from Tokenization)
+  const nextButton = screen.getByRole('button', { name: /Next step/i })
+  for (let i = 0; i < 5; i++) {
+    await user.click(nextButton)
+  }
+
+  // Edit query with an XSS payload
+  const queryInput = screen.getByLabelText(/Query/i)
+  await user.clear(queryInput)
+  await user.type(queryInput, '<script>alert("xss")</script><img src=x onerror=alert(1)><foreignObject>svgxss</foreignObject>apple phone')
+
+  // Click Next step twice to go from Keyword Ranking -> Keyword Limitations -> Meaning Vectors
+  await user.click(nextButton) // Keyword Limitations
+  await user.click(nextButton) // Meaning Vectors
+
+  // Verify we are on Meaning Vectors
+  expect(screen.getByRole('heading', { name: /Meaning Vectors is ready/i })).toBeDefined()
+
+  // Verify the Static Vectors notice is shown
+  expect(screen.getByText('Static Vectors')).toBeDefined()
+  expect(screen.getByText(/Coordinates on the meaning map are preset teaching values/i)).toBeDefined()
+
+  // Verify no HTML elements are injected
+  expect(container.querySelector('script')).toBeNull()
+  expect(container.querySelector('img[onerror]')).toBeNull()
+  expect(container.querySelector('foreignObject')).toBeNull()
+})
+
+test('guided flow semantic ranking integration test', async () => {
+  const user = userEvent.setup()
+  render(<App />)
+
+  // Start search
+  const startButton = screen.getByRole('button', { name: /Start Search/i })
+  await user.click(startButton)
+
+  // Navigate to Semantic Ranking step (8 clicks from Tokenization)
+  const nextButton = screen.getByRole('button', { name: /Next step/i })
+  for (let i = 0; i < 8; i++) {
+    await user.click(nextButton)
+  }
+
+  // Verify we are on Semantic Ranking
+  expect(screen.getByRole('heading', { name: /Semantic Ranking is ready/i })).toBeDefined()
+
+  // Verify distance lines (dashed lines in SVG)
+  const dashedLines = screen.getAllByRole('img')[0].querySelectorAll('line')
+  const distanceLines = Array.from(dashedLines).filter(
+    (line) => line.getAttribute('stroke-dasharray') === '4,4'
+  )
+  expect(distanceLines.length).toBeGreaterThan(0)
+
+  // Verify Rank list matches documents
+  expect(screen.getByText(/Rank 1 \(Closest\)/i)).toBeDefined()
+
+  // Verify Euclidean calculation breakdown panel is visible
+  expect(screen.getByText(/Formula:/i)).toBeDefined()
+  expect(screen.getByText(/Final Distance:/i)).toBeDefined()
+})
+
+

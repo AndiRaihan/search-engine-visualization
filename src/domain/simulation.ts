@@ -397,3 +397,224 @@ export function buildKeywordSnapshot(query: string, documents: SearchDocument[])
   }
 }
 
+// Phase 3 Semantic Journey Types & Interfaces
+
+export interface SemanticPoint {
+  id: string
+  label: string
+  coordinates: Vector2D
+}
+
+export interface SemanticDistanceRow {
+  id: string
+  label: string
+  distance: number
+  coordinates: Vector2D
+}
+
+export interface SemanticRankedDocument {
+  id: string
+  title?: string
+  text: string
+  originalIndex: number
+  distance: number
+  rank: number
+  coordinates: Vector2D
+  breakdown: EuclideanBreakdown
+}
+
+export interface SemanticMissedDocument {
+  id: string
+  title?: string
+  text: string
+  originalIndex: number
+  distance: number
+  coordinates: Vector2D
+  explanation: string
+}
+
+export interface EuclideanBreakdown {
+  formula: string
+  substitution: string
+  numericalSubstitution: string
+  differenceCalculation: string
+  squaredDifferences: string
+  sum: string
+  finalDistance: string
+}
+
+export interface SemanticSnapshot {
+  queryPoint: SemanticPoint
+  documentPoints: SemanticPoint[]
+  rankedDocuments: SemanticRankedDocument[]
+  missedDocuments: SemanticMissedDocument[]
+  defaultBreakdown: EuclideanBreakdown
+}
+
+export function formatTwoDecimals(value: number): string {
+  if (typeof value !== 'number' || isNaN(value) || !isFinite(value)) {
+    return '0.00'
+  }
+  return value.toFixed(2)
+}
+
+export function euclideanDistance(p1: Vector2D, p2: Vector2D): number {
+  const dx = p1[0] - p2[0]
+  const dy = p1[1] - p2[1]
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+export function rankByEuclideanDistance(
+  queryCoords: Vector2D,
+  documents: { id: string; originalIndex: number; vector: Vector2D }[]
+): { id: string; originalIndex: number; distance: number; rank: number }[] {
+  const scored = documents.map((doc) => {
+    const distance = euclideanDistance(queryCoords, doc.vector)
+    return {
+      id: doc.id,
+      originalIndex: doc.originalIndex,
+      distance,
+    }
+  })
+
+  scored.sort((a, b) => {
+    if (Math.abs(a.distance - b.distance) > 1e-9) {
+      return a.distance - b.distance
+    }
+    return a.originalIndex - b.originalIndex
+  })
+
+  return scored.map((item, idx) => ({
+    ...item,
+    rank: idx + 1,
+  }))
+}
+
+export function buildEuclideanBreakdown(
+  queryLabel: string,
+  docLabel: string,
+  queryCoords: Vector2D,
+  docCoords: Vector2D
+): EuclideanBreakdown {
+  const qx = queryCoords[0]
+  const qy = queryCoords[1]
+  const dx = docCoords[0]
+  const dy = docCoords[1]
+
+  const diffX = qx - dx
+  const diffY = qy - dy
+
+  const sqX = diffX * diffX
+  const sqY = diffY * diffY
+  const sumSq = sqX + sqY
+  const dist = Math.sqrt(sumSq)
+
+  const qxStr = formatTwoDecimals(qx)
+  const qyStr = formatTwoDecimals(qy)
+  const dxStr = formatTwoDecimals(dx)
+  const dyStr = formatTwoDecimals(dy)
+
+  const diffXStr = formatTwoDecimals(diffX)
+  const diffYStr = formatTwoDecimals(diffY)
+
+  const sqXStr = formatThreeDecimals(sqX)
+  const sqYStr = formatThreeDecimals(sqY)
+  const sumSqStr = formatThreeDecimals(sumSq)
+  const distStr = formatThreeDecimals(dist)
+
+  return {
+    formula: 'd = \\sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2}',
+    substitution: `d = \\sqrt{(${queryLabel}_x - ${docLabel}_x)^2 + (${queryLabel}_y - ${docLabel}_y)^2}`,
+    numericalSubstitution: `d = \\sqrt{(${qxStr} - ${dxStr})^2 + (${qyStr} - ${dyStr})^2}`,
+    differenceCalculation: `d = \\sqrt{(${diffXStr})^2 + (${diffYStr})^2}`,
+    squaredDifferences: `d = \\sqrt{${sqXStr} + ${sqYStr}}`,
+    sum: `d = \\sqrt{${sumSqStr}}`,
+    finalDistance: distStr,
+  }
+}
+
+export function buildSemanticSnapshot(
+  session: SimulationSession,
+  keywordSnapshot: KeywordSnapshot
+): SemanticSnapshot {
+  const queryPoint: SemanticPoint = {
+    id: 'query',
+    label: 'Query',
+    coordinates: session.vectors.query,
+  }
+
+  const documentPoints: SemanticPoint[] = session.documents.map((doc, idx) => {
+    const coordinates = session.vectors.documents[doc.id] || [0, 0]
+    return {
+      id: doc.id,
+      label: `D${idx + 1}`,
+      coordinates,
+    }
+  })
+
+  const docsForRanking = session.documents.map((doc, idx) => {
+    const originalIndex = keywordSnapshot.documents.find((kd) => kd.id === doc.id)?.originalIndex ?? idx
+    const vector = session.vectors.documents[doc.id] || [0, 0]
+    return {
+      id: doc.id,
+      originalIndex,
+      vector,
+    }
+  })
+
+  const rankedScored = rankByEuclideanDistance(session.vectors.query, docsForRanking)
+
+  const rankedDocuments: SemanticRankedDocument[] = rankedScored.map((rankedItem) => {
+    const doc = session.documents.find((d) => d.id === rankedItem.id)!
+    const docIdx = session.documents.findIndex((d) => d.id === rankedItem.id)
+    const docLabel = `D${docIdx + 1}`
+    const vector = session.vectors.documents[rankedItem.id] || [0, 0]
+    const breakdown = buildEuclideanBreakdown('Query', docLabel, session.vectors.query, vector)
+
+    return {
+      id: rankedItem.id,
+      title: doc.title,
+      text: doc.text,
+      originalIndex: rankedItem.originalIndex,
+      distance: rankedItem.distance,
+      rank: rankedItem.rank,
+      coordinates: vector,
+      breakdown,
+    }
+  })
+
+  const missedDocuments: SemanticMissedDocument[] = []
+  if (session.scenarioId === 'keyword-misses-meaning' && session.query.toLowerCase().includes('phone')) {
+    for (const doc of rankedDocuments) {
+      const kwDoc = keywordSnapshot.documents.find((d) => d.id === doc.id)
+      if (kwDoc && kwDoc.score === 0) {
+        if (doc.text.toLowerCase().includes('iphone')) {
+          missedDocuments.push({
+            id: doc.id,
+            title: doc.title,
+            text: doc.text,
+            originalIndex: doc.originalIndex,
+            distance: doc.distance,
+            coordinates: doc.coordinates,
+            explanation: 'Score: 0.000 (Missed synonym: iPhone vs phone)',
+          })
+        }
+      }
+    }
+  }
+
+  const defaultBreakdown =
+    rankedDocuments.length > 0
+      ? rankedDocuments[0].breakdown
+      : buildEuclideanBreakdown('Query', 'D1', session.vectors.query, [0, 0])
+
+  return {
+    queryPoint,
+    documentPoints,
+    rankedDocuments,
+    missedDocuments,
+    defaultBreakdown,
+  }
+}
+
+

@@ -7,6 +7,7 @@ import {
   selectCanGoPrevious,
   selectProgress,
   buildKeywordSnapshot,
+  buildSemanticSnapshot,
 } from '@/domain/simulation'
 import { scenarios, getScenarioById } from '@/content/scenarios'
 import { lessonSteps } from '@/content/lessonSteps'
@@ -42,6 +43,10 @@ export default function App() {
   const keywordSnapshot = useMemo(() => {
     return buildKeywordSnapshot(session.query, session.documents)
   }, [session.query, session.documents])
+
+  const semanticSnapshot = useMemo(() => {
+    return buildSemanticSnapshot(session, keywordSnapshot)
+  }, [session, keywordSnapshot])
 
   // Focus redirection and live announcement when scenario changes
   useEffect(() => {
@@ -105,6 +110,13 @@ export default function App() {
     setAnnouncement('Scenario reset to its original values.')
   }
 
+  const handleSwitchToKeywordMissesMeaning = () => {
+    const targetScenario = getScenarioById('keyword-misses-meaning')
+    if (targetScenario) {
+      dispatch({ type: 'scenarioSelected', scenario: targetScenario })
+    }
+  }
+
   return (
     <div className="mx-auto max-w-[1600px] px-lg py-2xl bg-dominant min-h-screen flex flex-col">
       {/* Polite Screen Reader Live Region */}
@@ -163,6 +175,10 @@ export default function App() {
           activeStepTitle={activeStep.title}
           setupHeadingRef={setupHeadingRef}
           keywordSnapshot={keywordSnapshot}
+          semanticSnapshot={semanticSnapshot}
+          isEdited={isEdited}
+          activeScenarioId={session.scenarioId}
+          onSwitchToKeywordMissesMeaning={handleSwitchToKeywordMissesMeaning}
         />
       </main>
 

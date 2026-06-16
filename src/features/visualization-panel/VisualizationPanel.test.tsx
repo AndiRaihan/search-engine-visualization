@@ -1,7 +1,30 @@
 import { render, screen } from '@testing-library/react'
 import { expect, test, describe } from 'vitest'
 import { VisualizationPanel } from './VisualizationPanel'
-import { buildKeywordSnapshot } from '@/domain/simulation'
+import { buildKeywordSnapshot, buildSemanticSnapshot } from '@/domain/simulation'
+
+function renderPanel(activeStepId: any, activeStepTitle: string, snapshot: any, isEdited = false) {
+  const session = {
+    scenarioId: 'exact-match-fails',
+    query: '',
+    documents: snapshot.documents.map((d: any) => ({ id: d.id, text: d.text })),
+    vectors: {
+      query: [0.5, 0.5] as [number, number],
+      documents: snapshot.documents.reduce((acc: any, doc: any) => ({ ...acc, [doc.id]: [0.5, 0.5] as [number, number] }), {}),
+    },
+    activeStepId,
+  }
+  const semanticSnapshot = buildSemanticSnapshot(session, snapshot)
+  return render(
+    <VisualizationPanel
+      activeStepId={activeStepId}
+      activeStepTitle={activeStepTitle}
+      keywordSnapshot={snapshot}
+      semanticSnapshot={semanticSnapshot}
+      isEdited={isEdited}
+    />
+  )
+}
 
 describe('VisualizationPanel - Tokenization and Matching Steps', () => {
   test('Tokenization step renders Query Tokens and Document Tokens', () => {
@@ -12,13 +35,7 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     ]
     const snapshot = buildKeywordSnapshot(query, documents)
 
-    render(
-      <VisualizationPanel
-        activeStepId="tokenization"
-        activeStepTitle="Tokenization"
-        keywordSnapshot={snapshot}
-      />
-    )
+    renderPanel('tokenization', 'Tokenization', snapshot)
 
     // Check headings
     expect(screen.getByRole('heading', { name: /Query Tokens/i })).toBeDefined()
@@ -41,13 +58,7 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     ]
     const snapshot = buildKeywordSnapshot(query, documents)
 
-    render(
-      <VisualizationPanel
-        activeStepId="tokenization"
-        activeStepTitle="Tokenization"
-        keywordSnapshot={snapshot}
-      />
-    )
+    renderPanel('tokenization', 'Tokenization', snapshot)
 
     // Heading "No tokens found" should render
     const noTokensHeadings = screen.getAllByText(/No tokens found/i)
@@ -68,13 +79,7 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     ]
     const snapshot = buildKeywordSnapshot(query, documents)
 
-    render(
-      <VisualizationPanel
-        activeStepId="matching"
-        activeStepTitle="Word Matching"
-        keywordSnapshot={snapshot}
-      />
-    )
+    renderPanel('matching', 'Word Matching', snapshot)
 
     expect(screen.getByText(/Document 1/i)).toBeDefined()
 
@@ -95,13 +100,7 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     ]
     const snapshot = buildKeywordSnapshot(query, documents)
 
-    const { container } = render(
-      <VisualizationPanel
-        activeStepId="tokenization"
-        activeStepTitle="Tokenization"
-        keywordSnapshot={snapshot}
-      />
-    )
+    const { container } = renderPanel('tokenization', 'Tokenization', snapshot)
 
     // Ensure no actual script or img element got injected
     const scriptTag = container.querySelector('script')
@@ -117,13 +116,7 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     ]
     const snapshot = buildKeywordSnapshot(query, documents)
 
-    render(
-      <VisualizationPanel
-        activeStepId="term-frequency"
-        activeStepTitle="Term Frequency"
-        keywordSnapshot={snapshot}
-      />
-    )
+    renderPanel('term-frequency', 'Term Frequency', snapshot)
 
     // Verify table headers
     expect(screen.getByText('Query Term')).toBeDefined()
@@ -149,13 +142,7 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     ]
     const snapshot = buildKeywordSnapshot(query, documents)
 
-    render(
-      <VisualizationPanel
-        activeStepId="inverse-document-frequency"
-        activeStepTitle="Inverse Document Frequency"
-        keywordSnapshot={snapshot}
-      />
-    )
+    renderPanel('inverse-document-frequency', 'Inverse Document Frequency', snapshot)
 
     // Verify headers
     expect(screen.getByText('Doc Frequency (df)')).toBeDefined()
@@ -182,13 +169,7 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     ]
     const snapshot = buildKeywordSnapshot(query, documents)
 
-    render(
-      <VisualizationPanel
-        activeStepId="tf-idf"
-        activeStepTitle="TF-IDF Calculation"
-        keywordSnapshot={snapshot}
-      />
-    )
+    renderPanel('tf-idf', 'TF-IDF Calculation', snapshot)
 
     // Check document card and score
     expect(screen.getByText('Document 1')).toBeDefined()
@@ -210,13 +191,7 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     const documents = [{ id: 'doc1', title: 'Document 1', text: '' }]
     const snapshot = buildKeywordSnapshot(query, documents)
 
-    render(
-      <VisualizationPanel
-        activeStepId="tf-idf"
-        activeStepTitle="TF-IDF Calculation"
-        keywordSnapshot={snapshot}
-      />
-    )
+    renderPanel('tf-idf', 'TF-IDF Calculation', snapshot)
 
     expect(screen.getAllByText(/No tokens found/i).length).toBeGreaterThanOrEqual(1)
   })
@@ -229,13 +204,7 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     ]
     const snapshot = buildKeywordSnapshot(query, documents)
 
-    render(
-      <VisualizationPanel
-        activeStepId="keyword-ranking"
-        activeStepTitle="Keyword Ranking"
-        keywordSnapshot={snapshot}
-      />
-    )
+    renderPanel('keyword-ranking', 'Keyword Ranking', snapshot)
 
     // Check ranks and order: Document 2 should be #1, Document 1 should be #2
     const headings = screen.getAllByRole('heading', { level: 3 })
@@ -262,13 +231,7 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     ]
     const snapshot = buildKeywordSnapshot(query, documents)
 
-    render(
-      <VisualizationPanel
-        activeStepId="keyword-ranking"
-        activeStepTitle="Keyword Ranking"
-        keywordSnapshot={snapshot}
-      />
-    )
+    renderPanel('keyword-ranking', 'Keyword Ranking', snapshot)
 
     // Both scores are 0.000. Renders original index order: Document 1 (#1) then Document 2 (#2)
     const headings = screen.getAllByRole('heading', { level: 3 })

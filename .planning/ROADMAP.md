@@ -11,9 +11,9 @@ Build the simulation as five vertical classroom slices. The first phase establis
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions marked `INSERTED`
 
-- [ ] **Phase 1: Guided Classroom Shell** - Deliver a static, scenario-driven simulation that users can edit, reset, and navigate.
+- [x] **Phase 1: Guided Classroom Shell** - Deliver a static, scenario-driven simulation that users can edit, reset, and navigate. (completed 2026-06-15)
 - [x] **Phase 2: Keyword Search Journey** - Teach tokenization through deterministic TF-IDF ranking with visible evidence. (completed 2026-06-16)
-- [ ] **Phase 3: Euclidean Meaning Journey** - Bridge from keyword limitations to curated vectors and distance-based semantic ranking.
+- [x] **Phase 3: Euclidean Meaning Journey** - Bridge from keyword limitations to curated vectors and distance-based semantic ranking. (completed 2026-06-16)
 - [ ] **Phase 4: Cosine Comparison** - Add cosine similarity, metric switching, and trustworthy semantic explanations.
 - [ ] **Phase 5: Final Comparison and Release Readiness** - Compare both ranking models and harden the complete classroom flow.
 
@@ -38,15 +38,15 @@ Build the simulation as five vertical classroom slices. The first phase establis
 Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Scaffold the tested static React walking skeleton and classroom visual system.
+- [x] 01-01-PLAN.md — Scaffold the tested static React walking skeleton and classroom visual system.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — Deliver typed local scenarios and the reducer-backed editable workbench.
+- [x] 01-02-PLAN.md — Deliver typed local scenarios and the reducer-backed editable workbench.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03-PLAN.md — Complete registered navigation, safe reset, accessibility, and phase verification.
+- [x] 01-03-PLAN.md — Complete registered navigation, safe reset, accessibility, and phase verification.
 
 ### Phase 2: Keyword Search Journey
 
@@ -96,15 +96,15 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 03-01: Extend scenarios and snapshots with validated curated vectors and edit-state teaching notices.
+- [x] 03-01: Extend scenarios and snapshots with validated curated vectors and edit-state teaching notices.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02: Build the keyword-limitation bridge and accessible SVG meaning map.
+- [x] 03-02: Build the keyword-limitation bridge and accessible SVG meaning map.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 03-03: Add Euclidean calculations, distance lines/table, semantic ranking, and explanations.
+- [x] 03-03: Add Euclidean calculations, distance lines/table, semantic ranking, and explanations.
 
 ### Phase 4: Cosine Comparison
 
@@ -155,8 +155,8 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Guided Classroom Shell | 0/3 | Not started | - |
+| 1. Guided Classroom Shell | 3/3 | Complete   | 2026-06-15 |
 | 2. Keyword Search Journey | 3/3 | Complete   | 2026-06-16 |
-| 3. Euclidean Meaning Journey | 0/3 | Not started | - |
+| 3. Euclidean Meaning Journey | 3/3 | Complete   | 2026-06-16 |
 | 4. Cosine Comparison | 0/2 | Not started | - |
 | 5. Final Comparison and Release Readiness | 0/3 | Not started | - |

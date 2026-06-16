@@ -1,5 +1,5 @@
 import React from 'react'
-import type { StepId, KeywordSnapshot } from '@/domain/simulation'
+import type { StepId, KeywordSnapshot, SemanticSnapshot } from '@/domain/simulation'
 import {
   TokenizationStep,
   MatchingStep,
@@ -10,12 +10,21 @@ import {
   TfidfStep,
   KeywordRankingStep,
 } from './keyword-steps/KeywordScoringSteps'
+import {
+  MeaningVectorsStep,
+  SemanticRankingStep,
+  KeywordLimitationStep,
+} from './semantic-steps/SemanticVisualizationSteps'
 
 interface VisualizationPanelProps {
   activeStepId: StepId
   activeStepTitle: string
   setupHeadingRef?: React.RefObject<HTMLHeadingElement | null>
   keywordSnapshot: KeywordSnapshot
+  semanticSnapshot: SemanticSnapshot
+  isEdited: boolean
+  activeScenarioId?: string
+  onSwitchToKeywordMissesMeaning?: () => void
 }
 
 export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
@@ -23,6 +32,10 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
   activeStepTitle,
   setupHeadingRef,
   keywordSnapshot,
+  semanticSnapshot,
+  isEdited,
+  activeScenarioId,
+  onSwitchToKeywordMissesMeaning,
 }) => {
   const isSetup = activeStepId === 'setup'
 
@@ -68,6 +81,17 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
             <TfidfStep snapshot={keywordSnapshot} />
           ) : activeStepId === 'keyword-ranking' ? (
             <KeywordRankingStep snapshot={keywordSnapshot} />
+          ) : activeStepId === 'keyword-limitation' ? (
+            <KeywordLimitationStep
+              activeScenarioId={activeScenarioId || 'exact-match-fails'}
+              keywordSnapshot={keywordSnapshot}
+              semanticSnapshot={semanticSnapshot}
+              onSwitchToKeywordMissesMeaning={onSwitchToKeywordMissesMeaning || (() => {})}
+            />
+          ) : activeStepId === 'meaning-vectors' ? (
+            <MeaningVectorsStep semanticSnapshot={semanticSnapshot} isEdited={isEdited} />
+          ) : activeStepId === 'semantic-ranking' ? (
+            <SemanticRankingStep semanticSnapshot={semanticSnapshot} isEdited={isEdited} />
           ) : (
             <div className="border border-dashed border-border-custom rounded-[8px] p-2xl flex items-center justify-center bg-subtle-surface">
               <span className="text-label text-muted-text uppercase tracking-wider">

@@ -16,6 +16,11 @@ import {
   rankByKeywordScore,
   formatThreeDecimals,
   buildKeywordSnapshot,
+  formatTwoDecimals,
+  euclideanDistance,
+  rankByEuclideanDistance,
+  buildEuclideanBreakdown,
+  buildSemanticSnapshot,
 } from './simulation'
 import type { Scenario, KeywordDocumentSnapshot } from './simulation'
 import { scenarios } from '@/content/scenarios'
@@ -324,6 +329,103 @@ describe('Phase 2 - Task 3: TF-IDF, Ranking, and Snapshot Builder', () => {
     expect(snapshot.rankedDocuments.length).toBe(2)
     expect(snapshot.maxScore).toBeGreaterThan(0)
     expect(snapshot.rankedDocuments[0].explanation).toContain('Score:')
+  })
+})
+
+describe('Phase 3 - semantic vectors and Euclidean distance', () => {
+  test('semantic: every scenario document has a matching vector in [0, 1] coordinates', () => {
+    for (const scenario of scenarios) {
+      const session = buildSessionFromScenario(scenario)
+      expect(session.vectors.query[0]).toBeGreaterThanOrEqual(0)
+      expect(session.vectors.query[0]).toBeLessThanOrEqual(1)
+      expect(session.vectors.query[1]).toBeGreaterThanOrEqual(0)
+      expect(session.vectors.query[1]).toBeLessThanOrEqual(1)
+
+      for (const doc of scenario.documents) {
+        const docVector = session.vectors.documents[doc.id]
+        expect(docVector).toBeDefined()
+        expect(docVector[0]).toBeGreaterThanOrEqual(0)
+        expect(docVector[0]).toBeLessThanOrEqual(1)
+        expect(docVector[1]).toBeGreaterThanOrEqual(0)
+        expect(docVector[1]).toBeLessThanOrEqual(1)
+      }
+    }
+  })
+
+  test('semantic: editing query/document text leaves session.vectors equal to scenario defaults', () => {
+    const scenario = scenarios[0]
+    const session = buildSessionFromScenario(scenario)
+    const initialQueryVector = [...session.vectors.query]
+    const initialDocVectors = { ...session.vectors.documents }
+
+    const nextStateQuery = simulationReducer(session, { type: 'queryChanged', value: 'new search text' })
+    expect(nextStateQuery.vectors.query).toEqual(initialQueryVector)
+    expect(nextStateQuery.vectors.documents).toEqual(initialDocVectors)
+
+    const nextStateDoc = simulationReducer(session, {
+      type: 'documentChanged',
+      documentId: scenario.documents[0].id,
+      value: 'new doc text'
+    })
+    expect(nextStateDoc.vectors.query).toEqual(initialQueryVector)
+    expect(nextStateDoc.vectors.documents).toEqual(initialDocVectors)
+  })
+
+  test('euclidean: euclideanDistance computes correct distance and formatTwoDecimals format coords', () => {
+    const dist = euclideanDistance([0.80, 0.70], [0.90, 0.80])
+    expect(dist).toBeCloseTo(0.141421, 6)
+
+    expect(formatThreeDecimals(dist)).toBe('0.141')
+
+    expect(formatTwoDecimals(0.8)).toBe('0.80')
+    expect(formatTwoDecimals(0.755)).toBe('0.76')
+    expect(formatTwoDecimals(0)).toBe('0.00')
+  })
+
+  test('euclidean: rankByEuclideanDistance sorts by raw smallest distance and tie-breaks deterministically', () => {
+    const queryPoint: [number, number] = [0.5, 0.5]
+    const docs = [
+      { id: 'doc-a', originalIndex: 0, vector: [0.6, 0.6] as [number, number] },
+      { id: 'doc-b', originalIndex: 1, vector: [0.9, 0.9] as [number, number] },
+      { id: 'doc-c', originalIndex: 2, vector: [0.6, 0.6] as [number, number] },
+    ]
+
+    const ranked = rankByEuclideanDistance(queryPoint, docs)
+    expect(ranked.length).toBe(3)
+    expect(ranked[0].id).toBe('doc-a')
+    expect(ranked[0].rank).toBe(1)
+    expect(ranked[1].id).toBe('doc-c')
+    expect(ranked[1].rank).toBe(2)
+    expect(ranked[2].id).toBe('doc-b')
+    expect(ranked[2].rank).toBe(3)
+  })
+
+  test('euclidean: buildEuclideanBreakdown exposes formula, substitutions, calculations', () => {
+    const breakdown = buildEuclideanBreakdown('Query', 'D1', [0.80, 0.70], [0.90, 0.80])
+    expect(breakdown.formula).toBe('d = \\sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2}')
+    expect(breakdown.substitution).toBe('d = \\sqrt{(Query_x - D1_x)^2 + (Query_y - D1_y)^2}')
+    expect(breakdown.numericalSubstitution).toBe('d = \\sqrt{(0.80 - 0.90)^2 + (0.70 - 0.80)^2}')
+    expect(breakdown.differenceCalculation).toBe('d = \\sqrt{(-0.10)^2 + (-0.10)^2}')
+    expect(breakdown.squaredDifferences).toBe('d = \\sqrt{0.010 + 0.010}')
+    expect(breakdown.sum).toBe('d = \\sqrt{0.020}')
+    expect(breakdown.finalDistance).toBe('0.141')
+  })
+
+  test('semantic: buildSemanticSnapshot integrates all semantic data', () => {
+    const scenario = scenarios[0]
+    const session = buildSessionFromScenario(scenario)
+    const keywordSnapshot = buildKeywordSnapshot(session.query, session.documents)
+    const snapshot = buildSemanticSnapshot(session, keywordSnapshot)
+
+    expect(snapshot.queryPoint.label).toBe('Query')
+    expect(snapshot.queryPoint.coordinates).toEqual(session.vectors.query)
+    expect(snapshot.documentPoints.length).toBe(session.documents.length)
+    expect(snapshot.documentPoints[0].label).toBe('D1')
+    expect(snapshot.rankedDocuments.length).toBe(session.documents.length)
+    expect(snapshot.rankedDocuments[0].rank).toBe(1)
+    expect(snapshot.rankedDocuments[0].distance).toBeGreaterThanOrEqual(0)
+    expect(snapshot.defaultBreakdown).toBeDefined()
+    expect(snapshot.defaultBreakdown.finalDistance).toBeDefined()
   })
 })
 
