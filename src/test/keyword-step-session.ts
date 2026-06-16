@@ -1,4 +1,5 @@
-import { buildSessionFromScenario, SimulationSession, KeywordStepId } from '../domain/simulation'
+import { buildSessionFromScenario } from '../domain/simulation'
+import type { SimulationSession, KeywordStepId } from '../domain/simulation'
 import { scenarios } from '../content/scenarios'
 
 export function buildKeywordStepSession(

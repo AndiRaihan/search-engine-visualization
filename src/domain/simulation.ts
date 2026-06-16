@@ -270,29 +270,130 @@ export function getIdf(term: string, allDocumentTokens: string[][]): number {
 }
 
 export function getTfidf(tf: number, idf: number): number {
-  return 0
+  return tf * idf
 }
 
 export function getDocumentKeywordScore(contributions: Record<string, KeywordTermContribution>): number {
-  return 0
+  let score = 0
+  for (const term in contributions) {
+    score += contributions[term].tfidf
+  }
+  return score
 }
 
 export function rankByKeywordScore(documents: KeywordDocumentSnapshot[]): KeywordRankedDocument[] {
-  return []
+  const sorted = [...documents].sort((a, b) => {
+    if (a.score !== b.score) {
+      return b.score - a.score
+    }
+    return a.originalIndex - b.originalIndex
+  })
+  return sorted.map((doc, index) => {
+    const rank = index + 1
+    const queryTerms = Object.keys(doc.contributions)
+    const formattedScore = formatThreeDecimals(doc.score)
+    let explanation = `Score: ${formattedScore}.`
+    if (queryTerms.length > 0) {
+      const termStrings = queryTerms.map(term => {
+        const contribVal = doc.contributions[term]?.tfidf || 0
+        return `'${term}' contributed ${formatThreeDecimals(contribVal)}`
+      })
+      explanation += ` Term ${termStrings.join(', ')}.`
+    }
+    return {
+      id: doc.id,
+      title: doc.title,
+      text: doc.text,
+      originalIndex: doc.originalIndex,
+      score: doc.score,
+      rank,
+      explanation,
+    }
+  })
 }
 
 export function formatThreeDecimals(value: number): string {
-  return '0.000'
+  if (typeof value !== 'number' || isNaN(value) || !isFinite(value)) {
+    return '0.000'
+  }
+  return value.toFixed(3)
 }
 
 export function buildKeywordSnapshot(query: string, documents: SearchDocument[]): KeywordSnapshot {
+  const queryTokens = tokenize(query)
+  const queryTerms = uniqueTermsInOrder(queryTokens)
+
+  const docTokensList = documents.map((d) => tokenize(d.text))
+
+  // Compute termStatistics
+  const termStatistics: Record<string, KeywordTermStatistic> = {}
+  for (const term of queryTerms) {
+    const df = getDocumentFrequency(term, docTokensList)
+    const N = documents.length
+    const rawRatio = N > 0 ? df / N : 0
+    const idf = getIdf(term, docTokensList)
+    const importance = df <= Math.floor(N / 2) ? 'rare' : 'common'
+    termStatistics[term] = {
+      term,
+      documentFrequency: df,
+      totalDocuments: N,
+      rawRatio,
+      idf,
+      importance,
+    }
+  }
+
+  // Compute KeywordDocumentSnapshot for each doc
+  const docSnapshots: KeywordDocumentSnapshot[] = documents.map((doc, originalIndex) => {
+    const tokens = docTokensList[originalIndex]
+    const matchedTerms = queryTerms.filter((t) => tokens.includes(t))
+    const missingTerms = queryTerms.filter((t) => !tokens.includes(t))
+    const matchSummary: KeywordMatchSummary = { matchedTerms, missingTerms }
+
+    const contributions: Record<string, KeywordTermContribution> = {}
+    for (const term of queryTerms) {
+      const count = tokens.filter((t) => t === term).length
+      const totalWords = tokens.length
+      const tf = getTermFrequency(term, tokens)
+      const idf = termStatistics[term]?.idf || 0
+      const tfidf = getTfidf(tf, idf)
+      contributions[term] = {
+        term,
+        count,
+        totalWords,
+        tf,
+        idf,
+        tfidf,
+      }
+    }
+
+    const score = getDocumentKeywordScore(contributions)
+
+    return {
+      id: doc.id,
+      title: doc.title,
+      text: doc.text,
+      originalIndex,
+      tokens,
+      matchSummary,
+      contributions,
+      score,
+    }
+  })
+
+  // Rank documents
+  const rankedDocuments = rankByKeywordScore(docSnapshots)
+
+  // Compute maxScore
+  const maxScore = docSnapshots.length > 0 ? Math.max(0, ...docSnapshots.map((d) => d.score)) : 0
+
   return {
-    queryTokens: [],
-    queryTerms: [],
-    termStatistics: {},
-    documents: [],
-    rankedDocuments: [],
-    maxScore: 0,
+    queryTokens,
+    queryTerms,
+    termStatistics,
+    documents: docSnapshots,
+    rankedDocuments,
+    maxScore: isFinite(maxScore) ? maxScore : 0,
   }
 }
 

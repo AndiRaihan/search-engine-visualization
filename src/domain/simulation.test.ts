@@ -11,10 +11,16 @@ import {
   getTermFrequency,
   getDocumentFrequency,
   getIdf,
+  getTfidf,
+  getDocumentKeywordScore,
+  rankByKeywordScore,
+  formatThreeDecimals,
+  buildKeywordSnapshot,
 } from './simulation'
-import type { Scenario } from './simulation'
+import type { Scenario, KeywordDocumentSnapshot } from './simulation'
 import { scenarios } from '@/content/scenarios'
 import { buildKeywordStepSession } from '../test/keyword-step-session'
+
 
 
 
@@ -210,5 +216,116 @@ describe('Phase 2 - Task 2: TF and IDF statistics', () => {
     expect(getIdf('iphone', [])).toBe(0)
   })
 })
+
+describe('Phase 2 - Task 3: TF-IDF, Ranking, and Snapshot Builder', () => {
+  test('getTfidf computes tf * idf', () => {
+    expect(getTfidf(0.5, 2.0)).toBe(1.0)
+    expect(getTfidf(0, 5.0)).toBe(0)
+  })
+
+  test('getDocumentKeywordScore sums contributions', () => {
+    const contribs = {
+      iphone: { term: 'iphone', count: 1, totalWords: 2, tf: 0.5, idf: 2.0, tfidf: 1.0 },
+      the: { term: 'the', count: 1, totalWords: 2, tf: 0.5, idf: 0, tfidf: 0 },
+    }
+    expect(getDocumentKeywordScore(contribs)).toBe(1.0)
+  })
+
+  test('formatThreeDecimals returns finite three-decimal strings, default 0.000', () => {
+    expect(formatThreeDecimals(0.45)).toBe('0.450')
+    expect(formatThreeDecimals(1 / 3)).toBe('0.333')
+    expect(formatThreeDecimals(0)).toBe('0.000')
+    expect(formatThreeDecimals(NaN)).toBe('0.000')
+    expect(formatThreeDecimals(Infinity)).toBe('0.000')
+    expect(formatThreeDecimals(-Infinity)).toBe('0.000')
+  })
+
+  test('rankByKeywordScore ranks descending by score, tie-breaks on original index', () => {
+    const docs: KeywordDocumentSnapshot[] = [
+      {
+        id: 'doc-a',
+        text: 'a',
+        originalIndex: 0,
+        tokens: ['a'],
+        matchSummary: { matchedTerms: ['a'], missingTerms: [] },
+        contributions: { a: { term: 'a', count: 1, totalWords: 1, tf: 1, idf: 0.3333, tfidf: 0.3333 } },
+        score: 0.3333,
+      },
+      {
+        id: 'doc-b',
+        text: 'b',
+        originalIndex: 1,
+        tokens: ['b'],
+        matchSummary: { matchedTerms: [], missingTerms: ['a'] },
+        contributions: { a: { term: 'a', count: 0, totalWords: 1, tf: 0, idf: 0.3333, tfidf: 0.0000 } },
+        score: 0.3331,
+      },
+      {
+        id: 'doc-c',
+        text: 'c',
+        originalIndex: 2,
+        tokens: ['c'],
+        matchSummary: { matchedTerms: ['a'], missingTerms: [] },
+        contributions: { a: { term: 'a', count: 1, totalWords: 1, tf: 1, idf: 0.3333, tfidf: 0.3333 } },
+        score: 0.3333,
+      },
+    ]
+
+    const ranked = rankByKeywordScore(docs)
+
+    expect(ranked.length).toBe(3)
+    // Rank 1: Doc A (score 0.3333, index 0)
+    expect(ranked[0].id).toBe('doc-a')
+    expect(ranked[0].rank).toBe(1)
+    // Rank 2: Doc C (score 0.3333, index 2)
+    expect(ranked[1].id).toBe('doc-c')
+    expect(ranked[1].rank).toBe(2)
+    // Rank 3: Doc B (score 0.3331, index 1)
+    expect(ranked[2].id).toBe('doc-b')
+    expect(ranked[2].rank).toBe(3)
+  })
+
+  test('explanations cite query terms in order and display rounded contributions', () => {
+    const docs: KeywordDocumentSnapshot[] = [
+      {
+        id: 'doc-a',
+        text: 'a b',
+        originalIndex: 0,
+        tokens: ['a', 'b'],
+        matchSummary: { matchedTerms: ['a'], missingTerms: ['b'] },
+        contributions: {
+          iphone: { term: 'iphone', count: 1, totalWords: 2, tf: 0.5, idf: 0.9, tfidf: 0.45 },
+          the: { term: 'the', count: 1, totalWords: 2, tf: 0.5, idf: 0, tfidf: 0 },
+        },
+        score: 0.45,
+      },
+    ]
+
+    const ranked = rankByKeywordScore(docs)
+    expect(ranked[0].explanation).toBe(
+      "Score: 0.450. Term 'iphone' contributed 0.450, 'the' contributed 0.000."
+    )
+  })
+
+  test('buildKeywordSnapshot creates full keyword snapshot from query and documents', () => {
+    const query = 'the iphone'
+    const docs = [
+      { id: '1', title: 'Doc 1', text: 'the iphone' },
+      { id: '2', title: 'Doc 2', text: 'iphone latest model' },
+    ]
+
+    const snapshot = buildKeywordSnapshot(query, docs)
+
+    expect(snapshot.queryTokens).toEqual(['the', 'iphone'])
+    expect(snapshot.queryTerms).toEqual(['the', 'iphone'])
+    expect(snapshot.termStatistics.iphone.documentFrequency).toBe(2)
+    expect(snapshot.termStatistics.the.documentFrequency).toBe(1)
+    expect(snapshot.documents.length).toBe(2)
+    expect(snapshot.rankedDocuments.length).toBe(2)
+    expect(snapshot.maxScore).toBeGreaterThan(0)
+    expect(snapshot.rankedDocuments[0].explanation).toContain('Score:')
+  })
+})
+
 
 
