@@ -1,4 +1,4 @@
-import { useReducer, useState, useEffect, useRef } from 'react'
+import { useReducer, useState, useEffect, useRef, useMemo } from 'react'
 import {
   simulationReducer,
   buildSessionFromScenario,
@@ -6,6 +6,7 @@ import {
   selectCanGoNext,
   selectCanGoPrevious,
   selectProgress,
+  buildKeywordSnapshot,
 } from '@/domain/simulation'
 import { scenarios, getScenarioById } from '@/content/scenarios'
 import { lessonSteps } from '@/content/lessonSteps'
@@ -37,6 +38,10 @@ export default function App() {
 
   const activeStep = lessonSteps.find((s) => s.id === session.activeStepId) || lessonSteps[0]
   const currentStepIndex = lessonSteps.findIndex((s) => s.id === session.activeStepId)
+
+  const keywordSnapshot = useMemo(() => {
+    return buildKeywordSnapshot(session.query, session.documents)
+  }, [session.query, session.documents])
 
   // Focus redirection and live announcement when scenario changes
   useEffect(() => {
@@ -157,6 +162,7 @@ export default function App() {
           activeStepId={session.activeStepId}
           activeStepTitle={activeStep.title}
           setupHeadingRef={setupHeadingRef}
+          keywordSnapshot={keywordSnapshot}
         />
       </main>
 

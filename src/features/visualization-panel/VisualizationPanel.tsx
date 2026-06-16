@@ -1,16 +1,24 @@
 import React from 'react'
-import type { StepId } from '@/domain/simulation'
+import type { StepId, KeywordSnapshot } from '@/domain/simulation'
+import {
+  TokenizationStep,
+  MatchingStep,
+  TermFrequencyStep,
+  InverseDocumentFrequencyStep,
+} from './keyword-steps/KeywordFoundationsSteps'
 
 interface VisualizationPanelProps {
   activeStepId: StepId
   activeStepTitle: string
   setupHeadingRef?: React.RefObject<HTMLHeadingElement | null>
+  keywordSnapshot: KeywordSnapshot
 }
 
 export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
   activeStepId,
   activeStepTitle,
   setupHeadingRef,
+  keywordSnapshot,
 }) => {
   const isSetup = activeStepId === 'setup'
 
@@ -43,14 +51,25 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
             </p>
           </div>
 
-          {/* Labeled Diagram Frame */}
-          <div className="border border-dashed border-border-custom rounded-[8px] p-2xl flex items-center justify-center bg-subtle-surface">
-            <span className="text-label text-muted-text uppercase tracking-wider">
-              [ {activeStepTitle} Visuals Placeholder ]
-            </span>
-          </div>
+          {/* Step content or Labeled Diagram Frame Placeholder */}
+          {activeStepId === 'tokenization' ? (
+            <TokenizationStep snapshot={keywordSnapshot} />
+          ) : activeStepId === 'matching' ? (
+            <MatchingStep snapshot={keywordSnapshot} />
+          ) : activeStepId === 'term-frequency' ? (
+            <TermFrequencyStep snapshot={keywordSnapshot} />
+          ) : activeStepId === 'inverse-document-frequency' ? (
+            <InverseDocumentFrequencyStep snapshot={keywordSnapshot} />
+          ) : (
+            <div className="border border-dashed border-border-custom rounded-[8px] p-2xl flex items-center justify-center bg-subtle-surface">
+              <span className="text-label text-muted-text uppercase tracking-wider">
+                [ {activeStepTitle} Visuals Placeholder ]
+              </span>
+            </div>
+          )}
         </div>
       )}
     </section>
   )
 }
+
