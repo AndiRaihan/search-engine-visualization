@@ -168,3 +168,119 @@ export function selectProgress(activeStepId: StepId): number {
   if (current === -1) return 0
   return Math.round((current / (total - 1)) * 100)
 }
+
+// Phase 2 Keyword Search Journey Types & Interfaces
+
+export type KeywordStepId =
+  | 'tokenization'
+  | 'matching'
+  | 'term-frequency'
+  | 'inverse-document-frequency'
+  | 'tf-idf'
+  | 'keyword-ranking'
+
+export interface KeywordTermStatistic {
+  term: string
+  documentFrequency: number
+  totalDocuments: number
+  rawRatio: number
+  idf: number
+  importance: 'rare' | 'common'
+}
+
+export interface KeywordTermContribution {
+  term: string
+  count: number
+  totalWords: number
+  tf: number
+  idf: number
+  tfidf: number
+}
+
+export interface KeywordMatchSummary {
+  matchedTerms: string[]
+  missingTerms: string[]
+}
+
+export interface KeywordDocumentSnapshot {
+  id: string
+  title?: string
+  text: string
+  originalIndex: number
+  tokens: string[]
+  matchSummary: KeywordMatchSummary
+  contributions: Record<string, KeywordTermContribution>
+  score: number
+}
+
+export interface KeywordRankedDocument {
+  id: string
+  title?: string
+  text: string
+  originalIndex: number
+  score: number
+  rank: number
+  explanation: string
+}
+
+export interface KeywordSnapshot {
+  queryTokens: string[]
+  queryTerms: string[]
+  termStatistics: Record<string, KeywordTermStatistic>
+  documents: KeywordDocumentSnapshot[]
+  rankedDocuments: KeywordRankedDocument[]
+  maxScore: number
+}
+
+// Pure keyword calculation helper stubs for TDD
+
+export function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+}
+
+export function uniqueTermsInOrder(tokens: string[]): string[] {
+  return Array.from(new Set(tokens))
+}
+
+export function getTermFrequency(term: string, documentTokens: string[]): number {
+  return 0
+}
+
+export function getDocumentFrequency(term: string, allDocumentTokens: string[][]): number {
+  return 0
+}
+
+export function getIdf(term: string, allDocumentTokens: string[][]): number {
+  return 0
+}
+
+export function getTfidf(tf: number, idf: number): number {
+  return 0
+}
+
+export function getDocumentKeywordScore(contributions: Record<string, KeywordTermContribution>): number {
+  return 0
+}
+
+export function rankByKeywordScore(documents: KeywordDocumentSnapshot[]): KeywordRankedDocument[] {
+  return []
+}
+
+export function formatThreeDecimals(value: number): string {
+  return '0.000'
+}
+
+export function buildKeywordSnapshot(query: string, documents: SearchDocument[]): KeywordSnapshot {
+  return {
+    queryTokens: [],
+    queryTerms: [],
+    termStatistics: {},
+    documents: [],
+    rankedDocuments: [],
+    maxScore: 0,
+  }
+}
+

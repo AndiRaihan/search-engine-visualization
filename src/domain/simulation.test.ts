@@ -6,9 +6,13 @@ import {
   selectCanGoNext,
   selectCanGoPrevious,
   selectProgress,
+  tokenize,
+  uniqueTermsInOrder,
 } from './simulation'
 import type { Scenario } from './simulation'
 import { scenarios } from '@/content/scenarios'
+import { buildKeywordStepSession } from '../test/keyword-step-session'
+
 
 describe('Simulation Domain Model and Reducer', () => {
   const scenario1 = scenarios[0]
@@ -138,3 +142,30 @@ describe('Simulation Domain Model and Reducer', () => {
     expect(selectProgress('final-comparison')).toBe(100)
   })
 })
+
+describe('Phase 2 - Task 1: Tokenization and Session Factory', () => {
+  test('tokenize lowercases and splits punctuation boundaries', () => {
+    const tokens = tokenize("iPhone's latest-model!")
+    expect(tokens).toEqual(['iphone', 's', 'latest', 'model'])
+  })
+
+  test('tokenize empty or punctuation-only yields empty array', () => {
+    expect(tokenize('')).toEqual([])
+    expect(tokenize('   ')).toEqual([])
+    expect(tokenize('!!!')).toEqual([])
+    expect(tokenize(" ' - ! ")).toEqual([])
+  })
+
+  test('uniqueTermsInOrder returns unique lowercase tokens in first-occurrence order', () => {
+    const tokens = ['iphone', 'iphone', 'the', 'iphone', 'model', 'the']
+    expect(uniqueTermsInOrder(tokens)).toEqual(['iphone', 'the', 'model'])
+  })
+
+  test('buildKeywordStepSession creates session at requested step with overrides', () => {
+    const session = buildKeywordStepSession('term-frequency', { query: 'custom query' })
+    expect(session.activeStepId).toBe('term-frequency')
+    expect(session.query).toBe('custom query')
+    expect(session.scenarioId).toBe(scenarios[0].id)
+  })
+})
+
