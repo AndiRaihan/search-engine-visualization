@@ -246,15 +246,27 @@ export function uniqueTermsInOrder(tokens: string[]): string[] {
 }
 
 export function getTermFrequency(term: string, documentTokens: string[]): number {
-  return 0
+  if (documentTokens.length === 0) return 0
+  const count = documentTokens.filter((t) => t === term).length
+  return count / documentTokens.length
 }
 
 export function getDocumentFrequency(term: string, allDocumentTokens: string[][]): number {
-  return 0
+  let count = 0
+  for (const tokens of allDocumentTokens) {
+    if (tokens.includes(term)) {
+      count++
+    }
+  }
+  return count
 }
 
 export function getIdf(term: string, allDocumentTokens: string[][]): number {
-  return 0
+  const N = allDocumentTokens.length
+  if (N === 0) return 0
+  const df = getDocumentFrequency(term, allDocumentTokens)
+  if (df === 0) return 0
+  return Math.log(N / df)
 }
 
 export function getTfidf(tf: number, idf: number): number {

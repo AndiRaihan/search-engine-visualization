@@ -8,10 +8,14 @@ import {
   selectProgress,
   tokenize,
   uniqueTermsInOrder,
+  getTermFrequency,
+  getDocumentFrequency,
+  getIdf,
 } from './simulation'
 import type { Scenario } from './simulation'
 import { scenarios } from '@/content/scenarios'
 import { buildKeywordStepSession } from '../test/keyword-step-session'
+
 
 
 describe('Simulation Domain Model and Reducer', () => {
@@ -168,4 +172,43 @@ describe('Phase 2 - Task 1: Tokenization and Session Factory', () => {
     expect(session.scenarioId).toBe(scenarios[0].id)
   })
 })
+
+describe('Phase 2 - Task 2: TF and IDF statistics', () => {
+  test('getTermFrequency computes count / total document words', () => {
+    const docTokens = ['the', 'iphone', 'is', 'cool', 'iphone']
+    expect(getTermFrequency('iphone', docTokens)).toBe(0.4) // 2 / 5
+    expect(getTermFrequency('the', docTokens)).toBe(0.2) // 1 / 5
+    expect(getTermFrequency('missing', docTokens)).toBe(0)
+    expect(getTermFrequency('iphone', [])).toBe(0) // empty doc
+  })
+
+  test('getDocumentFrequency counts documents containing term at least once', () => {
+    const corpora = [
+      ['iphone', 'cool'],
+      ['android', 'cool'],
+      ['iphone', 'iphone'],
+    ]
+    expect(getDocumentFrequency('iphone', corpora)).toBe(2)
+    expect(getDocumentFrequency('cool', corpora)).toBe(2)
+    expect(getDocumentFrequency('missing', corpora)).toBe(0)
+    expect(getDocumentFrequency('iphone', [])).toBe(0)
+  })
+
+  test('getIdf computes natural-log ln(N/df) unsmoothed, guards df/N=0', () => {
+    const corpora = [
+      ['iphone'],
+      ['android'],
+    ]
+    // N=2, df=1 => ln(2/1) = ln(2) ~ 0.6931471805599453
+    expect(getIdf('iphone', corpora)).toBeCloseTo(0.693147, 5)
+    // N=2, df=2 => ln(2/2) = ln(1) = 0
+    const corpora2 = [['iphone'], ['iphone']]
+    expect(getIdf('iphone', corpora2)).toBe(0)
+    // df=0 => returns 0
+    expect(getIdf('missing', corpora)).toBe(0)
+    // empty N => returns 0
+    expect(getIdf('iphone', [])).toBe(0)
+  })
+})
+
 
