@@ -174,5 +174,52 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     // Rare (Strong) since df (0) <= Math.floor(N / 2) (1)
     expect(screen.getByText('Rare (Strong)')).toBeDefined()
   })
+
+  test('TfidfStep renders TF-IDF table and scores with exactly 3 decimals and single row for duplicate terms', () => {
+    const query = 'phone phone'
+    const documents = [
+      { id: 'doc1', title: 'Document 1', text: 'phone cell' }
+    ]
+    const snapshot = buildKeywordSnapshot(query, documents)
+
+    render(
+      <VisualizationPanel
+        activeStepId="tf-idf"
+        activeStepTitle="TF-IDF Calculation"
+        keywordSnapshot={snapshot}
+      />
+    )
+
+    // Check document card and score
+    expect(screen.getByText('Document 1')).toBeDefined()
+    expect(screen.getByText(/Document Score: 0\.000/i)).toBeDefined()
+
+    // Table headers
+    expect(screen.getByRole('columnheader', { name: 'Query Term' })).toBeDefined()
+    expect(screen.getByRole('columnheader', { name: 'TF (Relative)' })).toBeDefined()
+    expect(screen.getByRole('columnheader', { name: 'IDF' })).toBeDefined()
+    expect(screen.getByRole('columnheader', { name: 'TF-IDF (TF * IDF)' })).toBeDefined()
+
+    // Verify row details for 'phone' - only one row should render for 'phone'
+    const rows = screen.getAllByRole('row')
+    expect(rows.length).toBe(2) // 1 header row + 1 data row for 'phone'
+  })
+
+  test('TfidfStep handles empty state gracefully', () => {
+    const query = ''
+    const documents = [{ id: 'doc1', title: 'Document 1', text: '' }]
+    const snapshot = buildKeywordSnapshot(query, documents)
+
+    render(
+      <VisualizationPanel
+        activeStepId="tf-idf"
+        activeStepTitle="TF-IDF Calculation"
+        keywordSnapshot={snapshot}
+      />
+    )
+
+    expect(screen.getAllByText(/No tokens found/i).length).toBeGreaterThanOrEqual(1)
+  })
 })
+
 

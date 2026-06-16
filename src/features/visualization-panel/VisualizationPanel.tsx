@@ -6,6 +6,10 @@ import {
   TermFrequencyStep,
   InverseDocumentFrequencyStep,
 } from './keyword-steps/KeywordFoundationsSteps'
+import {
+  TfidfStep,
+  KeywordRankingStep,
+} from './keyword-steps/KeywordScoringSteps'
 
 interface VisualizationPanelProps {
   activeStepId: StepId
@@ -60,6 +64,10 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
             <TermFrequencyStep snapshot={keywordSnapshot} />
           ) : activeStepId === 'inverse-document-frequency' ? (
             <InverseDocumentFrequencyStep snapshot={keywordSnapshot} />
+          ) : activeStepId === 'tf-idf' ? (
+            <TfidfStep snapshot={keywordSnapshot} />
+          ) : activeStepId === 'keyword-ranking' ? (
+            <KeywordRankingStep snapshot={keywordSnapshot} />
           ) : (
             <div className="border border-dashed border-border-custom rounded-[8px] p-2xl flex items-center justify-center bg-subtle-surface">
               <span className="text-label text-muted-text uppercase tracking-wider">
