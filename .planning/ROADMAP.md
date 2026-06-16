@@ -62,7 +62,7 @@ Plans:
   3. User can see common terms weakened and rare terms strengthened through labels and visual treatment that does not depend on color alone.
   4. User can view a deterministic keyword ranking whose explanation cites the visible TF-IDF contributions and updates after text edits.
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 
@@ -72,7 +72,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — Build tokenization, matching, TF, and IDF teaching steps from one shared snapshot.
+- [x] 02-02-PLAN.md — Build tokenization, matching, TF, and IDF teaching steps from one shared snapshot.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -150,7 +150,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Guided Classroom Shell | 0/3 | Not started | - |
-| 2. Keyword Search Journey | 1/3 | In Progress|  |
+| 2. Keyword Search Journey | 2/3 | In Progress|  |
 | 3. Euclidean Meaning Journey | 0/3 | Not started | - |
 | 4. Cosine Comparison | 0/2 | Not started | - |
 | 5. Final Comparison and Release Readiness | 0/3 | Not started | - |
