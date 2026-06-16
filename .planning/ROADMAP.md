@@ -93,11 +93,17 @@ Plans:
   4. After editing text, user is clearly told that semantic positions remain curated teaching coordinates rather than newly inferred embeddings.
 
 **Plans:** 3 plans
-
 Plans:
+**Wave 1**
 
 - [ ] 03-01: Extend scenarios and snapshots with validated curated vectors and edit-state teaching notices.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 03-02: Build the keyword-limitation bridge and accessible SVG meaning map.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 03-03: Add Euclidean calculations, distance lines/table, semantic ranking, and explanations.
 
 ### Phase 4: Cosine Comparison
