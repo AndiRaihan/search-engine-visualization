@@ -109,4 +109,70 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     expect(scriptTag).toBeNull()
     expect(imgTag).toBeNull()
   })
+
+  test('TermFrequencyStep renders columns, counts, total words, and relative TF with 3 decimals', () => {
+    const query = 'phone laptop'
+    const documents = [
+      { id: 'doc1', title: 'Document 1', text: 'phone phone cell' }
+    ]
+    const snapshot = buildKeywordSnapshot(query, documents)
+
+    render(
+      <VisualizationPanel
+        activeStepId="term-frequency"
+        activeStepTitle="Term Frequency"
+        keywordSnapshot={snapshot}
+      />
+    )
+
+    // Verify table headers
+    expect(screen.getByText('Query Term')).toBeDefined()
+    expect(screen.getByText('Count in Doc')).toBeDefined()
+    expect(screen.getByText('Total Words in Doc')).toBeDefined()
+    expect(screen.getByText('Relative TF')).toBeDefined()
+
+    // For 'phone': count = 2, total words = 3, tf = 2/3 = 0.667
+    expect(screen.getByText('2')).toBeDefined()
+    expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByText('0.667')).toBeDefined()
+
+    // For 'laptop': count = 0, total words = 3, tf = 0.000
+    expect(screen.getAllByText('0').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('0.000')).toBeDefined()
+  })
+
+  test('InverseDocumentFrequencyStep renders df, N, ratio, idf, and importance labels', () => {
+    const query = 'phone rareterm'
+    const documents = [
+      { id: 'doc1', title: 'Document 1', text: 'phone cell' },
+      { id: 'doc2', title: 'Document 2', text: 'phone screen' }
+    ]
+    const snapshot = buildKeywordSnapshot(query, documents)
+
+    render(
+      <VisualizationPanel
+        activeStepId="inverse-document-frequency"
+        activeStepTitle="Inverse Document Frequency"
+        keywordSnapshot={snapshot}
+      />
+    )
+
+    // Verify headers
+    expect(screen.getByText('Doc Frequency (df)')).toBeDefined()
+    expect(screen.getByText('Total Docs (N)')).toBeDefined()
+    expect(screen.getByText('Raw Ratio')).toBeDefined()
+    expect(screen.getByText('IDF (ln(N/df))')).toBeDefined()
+    expect(screen.getByText('Importance')).toBeDefined()
+
+    // For 'phone': df = 2, N = 2, raw ratio = 1.000, idf = ln(2/2) = 0.000
+    expect(screen.getByText('1.000')).toBeDefined()
+    expect(screen.getAllByText('0.000').length).toBeGreaterThanOrEqual(1)
+    // Common (Weak) since df (2) > Math.floor(N / 2) (1)
+    expect(screen.getByText('Common (Weak)')).toBeDefined()
+
+    // For 'rareterm': df = 0, N = 2, raw ratio = 0.000, idf = 0.000
+    // Rare (Strong) since df (0) <= Math.floor(N / 2) (1)
+    expect(screen.getByText('Rare (Strong)')).toBeDefined()
+  })
 })
+
