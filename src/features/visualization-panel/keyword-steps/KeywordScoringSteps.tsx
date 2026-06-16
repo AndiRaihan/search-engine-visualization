@@ -2,6 +2,7 @@ import React from 'react'
 import type { KeywordSnapshot } from '@/domain/simulation'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { formatThreeDecimals } from '@/domain/simulation'
+import { Progress } from '@/components/ui/progress'
 
 interface StepProps {
   snapshot: KeywordSnapshot
@@ -87,7 +88,66 @@ export const TfidfStep: React.FC<StepProps> = ({ snapshot }) => {
 }
 
 export const KeywordRankingStep: React.FC<StepProps> = ({ snapshot }) => {
+  const isQueryEmpty = snapshot.queryTokens.length === 0
+  const isDocsEmpty = snapshot.documents.every((doc) => doc.tokens.length === 0)
+  const isAllEmpty = isQueryEmpty && isDocsEmpty
+
+  if (isAllEmpty) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center p-xl bg-subtle-surface border border-border-custom rounded-[8px] min-h-[150px]">
+        <h3 className="text-heading font-weight-bold text-primary-text mb-sm">No tokens found</h3>
+        <p className="text-body text-muted-text max-w-[400px]">
+          Type some words in the query or documents to see search engine calculations.
+        </p>
+      </div>
+    )
+  }
+
+  const ranking = snapshot.rankedDocuments
+
   return (
-    <div>KeywordRankingStep placeholder</div>
+    <div className="flex flex-col gap-lg">
+      {ranking.map((doc) => {
+        const percentage = snapshot.maxScore > 0 ? (doc.score / snapshot.maxScore) * 100 : 0
+        const progressValue = isNaN(percentage) || !isFinite(percentage) ? 0 : Math.min(100, Math.max(0, percentage))
+
+        return (
+          <Card key={doc.id} className="border border-border-custom bg-secondary">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-body font-weight-bold text-primary-text flex justify-between items-center">
+                <h3 className="text-body font-weight-bold text-primary-text">
+                  #{doc.rank} - {doc.title || doc.id}
+                </h3>
+                <span className="text-body text-muted-text font-normal">
+                  Score: {formatThreeDecimals(doc.score)}
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-md">
+              {/* Document Text */}
+              <p className="text-body text-primary-text font-normal italic border-l-2 border-border-custom pl-md py-xs bg-subtle-surface/30">
+                {doc.text}
+              </p>
+
+              {/* Progress/Score Bar */}
+              <div className="flex flex-col gap-xs my-xs">
+                <Progress
+                  value={progressValue}
+                  aria-valuenow={progressValue}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Keyword score for ${doc.title || doc.id}`}
+                />
+              </div>
+
+              {/* D-09 Explanation */}
+              <div className="bg-subtle-surface border border-border-custom rounded-[6px] p-sm text-body text-primary-text">
+                {doc.explanation}
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })}
+    </div>
   )
 }

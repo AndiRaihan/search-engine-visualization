@@ -220,6 +220,68 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
 
     expect(screen.getAllByText(/No tokens found/i).length).toBeGreaterThanOrEqual(1)
   })
+
+  test('KeywordRankingStep renders ranking cards in snapshot.rankedDocuments order, with progressbar and explanations', () => {
+    const query = 'phone laptop'
+    const documents = [
+      { id: 'doc1', title: 'Document 1', text: 'laptop' },
+      { id: 'doc2', title: 'Document 2', text: 'phone laptop' }
+    ]
+    const snapshot = buildKeywordSnapshot(query, documents)
+
+    render(
+      <VisualizationPanel
+        activeStepId="keyword-ranking"
+        activeStepTitle="Keyword Ranking"
+        keywordSnapshot={snapshot}
+      />
+    )
+
+    // Check ranks and order: Document 2 should be #1, Document 1 should be #2
+    const headings = screen.getAllByRole('heading', { level: 3 })
+    expect(headings[0].textContent).toContain('#1')
+    expect(headings[0].textContent).toContain('Document 2')
+    expect(headings[1].textContent).toContain('#2')
+    expect(headings[1].textContent).toContain('Document 1')
+
+    // Check progress bars exist and have correct accessible labels and values
+    const progressBars = screen.getAllByRole('progressbar')
+    expect(progressBars.length).toBe(2)
+    expect(progressBars[0].getAttribute('aria-label')).toBe('Keyword score for Document 2')
+    expect(progressBars[0].getAttribute('aria-valuenow')).toBe('100') // doc2 is max score
+
+    // Check explanation
+    expect(screen.getAllByText(/Term 'phone' contributed/).length).toBe(2)
+  })
+
+  test('KeywordRankingStep handles true tie order and zero scores safely', () => {
+    const query = 'phone'
+    const documents = [
+      { id: 'doc1', title: 'Document 1', text: 'cell' },
+      { id: 'doc2', title: 'Document 2', text: 'screen' }
+    ]
+    const snapshot = buildKeywordSnapshot(query, documents)
+
+    render(
+      <VisualizationPanel
+        activeStepId="keyword-ranking"
+        activeStepTitle="Keyword Ranking"
+        keywordSnapshot={snapshot}
+      />
+    )
+
+    // Both scores are 0.000. Renders original index order: Document 1 (#1) then Document 2 (#2)
+    const headings = screen.getAllByRole('heading', { level: 3 })
+    expect(headings[0].textContent).toContain('#1')
+    expect(headings[0].textContent).toContain('Document 1')
+    expect(headings[1].textContent).toContain('#2')
+    expect(headings[1].textContent).toContain('Document 2')
+
+    // Progress bar for all-zero scores should be 0
+    const progressBars = screen.getAllByRole('progressbar')
+    expect(progressBars[0].getAttribute('aria-valuenow')).toBe('0')
+    expect(progressBars[1].getAttribute('aria-valuenow')).toBe('0')
+  })
 })
 
 

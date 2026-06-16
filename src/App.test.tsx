@@ -55,3 +55,48 @@ test('editing source query and documents triggers panel Edited status', async ()
   // Edited badge should disappear
   expect(screen.queryByText(/Edited/i)).toBeNull()
 })
+
+test('keyword ranking integration test: navigate to Keyword Ranking, edit query and document, and verify evidence updates', async () => {
+  const user = userEvent.setup()
+  render(<App />)
+
+  // Start the search
+  const startButton = screen.getByRole('button', { name: /Start Search/i })
+  await user.click(startButton)
+
+  // Navigate to Keyword Ranking step (5 clicks from Tokenization)
+  const nextButton = screen.getByRole('button', { name: /Next step/i })
+  for (let i = 0; i < 5; i++) {
+    await user.click(nextButton)
+  }
+
+  // Verify we are on Keyword Ranking
+  expect(screen.getByRole('heading', { name: /Keyword Ranking is ready/i })).toBeDefined()
+
+  // Verify initial top-ranked document is doc-4 (since it has "iphone" twice)
+  const headingsBefore = screen.getAllByRole('heading', { level: 3 }).filter(h => h.textContent?.includes('#'))
+  expect(headingsBefore[0].textContent).toContain('#1')
+  expect(headingsBefore[0].textContent).toContain('doc-4')
+
+  // Edit query to "cinnamon"
+  const queryInput = screen.getByLabelText(/Query/i)
+  await user.clear(queryInput)
+  await user.type(queryInput, 'cinnamon')
+
+  // Verify that doc-7 (which contains "cinnamon") is now #1
+  const headingsAfterQuery = screen.getAllByRole('heading', { level: 3 }).filter(h => h.textContent?.includes('#'))
+  expect(headingsAfterQuery[0].textContent).toContain('#1')
+  expect(headingsAfterQuery[0].textContent).toContain('doc-7')
+
+  // Verify the explanation cites cinnamon
+  expect(screen.getAllByText(/Term 'cinnamon' contributed/).length).toBeGreaterThanOrEqual(1)
+
+  // Edit Document 1 text to also contain cinnamon
+  const doc1Input = screen.getByLabelText(/Document 1 text/i)
+  await user.clear(doc1Input)
+  await user.type(doc1Input, 'cinnamon latest model')
+
+  // Verify that doc-1 and doc-7 both now contain cinnamon calculations and update
+  expect(screen.getAllByText(/Term 'cinnamon' contributed/).length).toBeGreaterThanOrEqual(2)
+})
+
