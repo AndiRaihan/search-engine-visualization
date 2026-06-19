@@ -127,8 +127,12 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 04-01: Implement cosine similarity, stable cosine ranking, and complete domain-engine unit coverage.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 04-02: Add the semantic metric toggle, cosine table/ranking, and selected-metric explanations.
 
 ### Phase 5: Final Comparison and Release Readiness

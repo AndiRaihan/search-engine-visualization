@@ -309,14 +309,15 @@ npm test -- --run src/features/visualization-panel/SemanticVisualizationSteps.te
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | Preserving the selected document across metric toggles is acceptable unless the planner/user explicitly prefers resetting to the new top-ranked document. [ASSUMED] | Common Pitfalls / Open Questions | The implementation could feel inconsistent if stakeholders expect the breakdown to jump to Rank 1 after every toggle. |
+| A1 | Preserving the selected document across metric toggles is the selected Phase 4 behavior. If the selected document no longer exists, fall back to the first-ranked document. [RESOLVED] | Common Pitfalls / Open Questions | Plan 04-02 encodes this behavior in tests and implementation tasks so the breakdown remains focused on the user's chosen document while all values and labels switch to the active metric. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should a metric toggle preserve the currently selected document or reset the breakdown to the new top-ranked result?**
+1. **Should a metric toggle preserve the currently selected document or reset the breakdown to the new top-ranked result?** **Resolved: preserve selection.**
    - What we know: `SemanticRankingStep` already preserves selection incidentally because `selectedDocumentId` is local state, and the locked context does not override that behavior. [VERIFIED: codebase grep]
-   - What's unclear: The product decision is not explicit about whether explanation focus should remain stable or follow the highest-ranked document after a toggle. [ASSUMED]
-   - Recommendation: Preserve the selected document across toggles, but add a test that the selected breakdown always cites the active metric correctly. [ASSUMED]
+   - Decision: Preserve the selected document across metric toggles so the learner's explanation focus remains stable while the displayed evidence switches between distance and similarity. [RESOLVED]
+   - Fallback: If the selected document id no longer exists in the ranked list, select the first-ranked document for the active metric. [RESOLVED]
+   - Plan linkage: Plan `04-02` adds tests that preserve selection across toggles and verify the selected breakdown always cites the active metric correctly. [RESOLVED]
 
 ## Environment Availability
 
