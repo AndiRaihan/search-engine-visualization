@@ -67,8 +67,7 @@ Exceptions: **none**. All Phase 4 elements use the existing scale.
 | Display | 28px | 700 | 1.2 | Page title (existing, unchanged) |
 | Heading | 20px | 700 | 1.2 | Step and section headings |
 | Body | 16px | 400 | 1.5 | Primary content, ranking list text, breakdown values |
-| Label | 14px | 700 | 1.4 | Table headers, toggle button labels |
-| Small | 12px | 400 | 1.4 | SVG tick labels, axis titles, point labels |
+| Label | 14px | 700 | 1.4 | Table headers, toggle button labels, SVG tick labels, axis titles, point labels |
 
 **Phase 4 text elements:**
 
@@ -143,6 +142,8 @@ The accent color `#087F8C` (teal) is reserved for these specific elements **only
 ---
 
 ## Layout & Interaction Contracts
+
+**Focal point:** The meaning map SVG remains the primary visual anchor on both `semantic-ranking` and `final-comparison` steps. The metric toggle is a secondary control at top-right; origin rays reinforce the map narrative but do not compete for initial attention. The cosine breakdown panel draws focus only when a document is selected, as a supporting detail beneath the ranking list.
 
 ### Phase 4 New Elements
 
