@@ -92,7 +92,7 @@ Plans:
   3. User can inspect Euclidean lines and values from the query to every document and see the smallest-distance ranking.
   4. After editing text, user is clearly told that semantic positions remain curated teaching coordinates rather than newly inferred embeddings.
 
-**Plans:** 3 plans
+**Plans:** 4 plans
 Plans:
 **Wave 1**
 
@@ -105,6 +105,10 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 03-03: Add Euclidean calculations, distance lines/table, semantic ranking, and explanations.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 03-04: Add interactive zoom, pan, and accessible control overlays to the SVG Meaning Map.
 
 ### Phase 4: Cosine Comparison
 
@@ -144,9 +148,16 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 05-01: Build the side-by-side final comparison, rank movement cues, and cross-model explanations.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 05-02: Complete Run All, keyboard controls, non-color semantics, focus behavior, and reduced-motion support.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 05-03: Add critical-flow browser tests and verify the production static build.
 
 ## Progress
