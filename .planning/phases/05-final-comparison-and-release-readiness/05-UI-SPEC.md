@@ -71,7 +71,7 @@ Exceptions: **none**. All Phase 5 elements use the existing scale.
 | Element | Size | Weight | Notes |
 |---------|------|--------|-------|
 | Run All button text | 14px | 700 | Primary CTA for autoplay |
-| Keyboard shortcut legend text | 12px | 400 | Muted reference description beside navigation |
+| Keyboard shortcut legend text | 14px | 400 | Muted reference description beside navigation (Label role) |
 | Autoplay status announcement | n/a | n/a | Live region screen reader announcements |
 | Rank movement delta text | 14px | 700 | E.g., "Moved up 2", "Moved down 1" |
 | Math breakdown label | 14px | 700 | "TF-IDF Weight", "Dot Product", etc. |
@@ -105,6 +105,10 @@ The accent color `#087F8C` (teal) is reserved for these specific elements **only
 ---
 
 ## Layout & Interaction Contracts
+
+**Primary Focal Point:** The side-by-side ranking columns (Keyword and Semantic).
+
+**Visual Hierarchy:** Headings draw the initial focus, followed by the side-by-side ranked lists where selected rows use high-contrast outline borders and accent markers to focus attention. Mathematical details at the bottom act as supporting cards.
 
 ### Element 1: Autoplay Slideshow ("Run All")
 
@@ -150,7 +154,7 @@ The accent color `#087F8C` (teal) is reserved for these specific elements **only
 - **Location:** Positioned inline, directly to the right of the navigation button group in the Lesson Panel.
 - **Spacing:** `ml-lg` (24px left margin), separating it cleanly from buttons.
 - **Style:** Compact notice panel:
-  - Font size: `12px` (Label style).
+  - Font size: `14px` (Label style).
   - Colors: `text-muted-text` (`#465766`), border-l-2 border-border-custom (`#AAB7BE`), `pl-sm` (8px padding).
   - Layout: `inline-flex items-center gap-xs`.
 - **Copy:** `Shortcuts: Alt+← Previous | Alt+→ Next | Alt+Shift+→ Run All`
@@ -281,6 +285,14 @@ To ensure the rank difference between Keyword and Semantic rankings is readable 
 
 ## Copy & Messaging Contract
 
+### State Messages
+
+| Context / State | Copy |
+|-----------------|------|
+| **Empty state (no document selected)** | `"Select a document from the ranking columns above to inspect side-by-side mathematical and scoring evidence."` |
+| **Empty state (no documents loaded)** | `"No documents available. Go to the Setup step to add query and document text."` |
+| **Error state (calculation error)** | `"Calculation error: An error occurred while computing the ranking metrics. Please reset the simulation or edit the document texts."` |
+
 ### Autoplay Messages
 
 | Context | Copy |
@@ -303,8 +315,10 @@ To ensure the rank difference between Keyword and Semantic rankings is readable 
 
 ## Registry Safety
 
-- Phase 5 does not load any external, third-party component blocks.
-- It relies entirely on native HTML/React elements styled with Tailwind utility classes, or official shadcn components (`card`, `button`, `badge`).
+| Registry | Blocks Used | Safety Gate |
+|----------|-------------|-------------|
+| shadcn official | card, button, badge | view passed — no flags — 2026-06-21 |
+| third-party | none | not applicable |
 
 ---
 
