@@ -25,7 +25,7 @@ export const ResetScenarioDialog: React.FC<ResetScenarioDialogProps> = ({
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent className="bg-secondary border border-border-custom rounded-[12px] p-lg max-w-md">
         <AlertDialogHeader className="text-left">
-          <AlertDialogTitle className="text-heading font-weight-bold text-primary-text">
+          <AlertDialogTitle className="text-heading font-bold text-primary-text">
             Reset edited scenario?
           </AlertDialogTitle>
           <AlertDialogDescription className="text-body text-muted-text mt-sm">
@@ -35,13 +35,13 @@ export const ResetScenarioDialog: React.FC<ResetScenarioDialogProps> = ({
         <AlertDialogFooter className="mt-xl flex gap-sm justify-end">
           <AlertDialogCancel
             autoFocus
-            className="min-h-[44px] px-lg font-weight-bold rounded-[4px] border border-border-custom text-primary-text bg-secondary hover:bg-subtle-surface cursor-pointer"
+            className="min-h-[44px] px-lg font-bold rounded-[4px] border border-border-custom text-primary-text bg-secondary hover:bg-subtle-surface cursor-pointer"
           >
             Keep edits
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className="min-h-[44px] px-lg font-weight-bold rounded-[4px] bg-destructive-fill hover:bg-destructive-fill/90 text-accent-contrast cursor-pointer"
+            className="min-h-[44px] px-lg font-bold rounded-[4px] bg-destructive-fill hover:bg-destructive-fill/90 text-accent-contrast cursor-pointer"
           >
             Reset scenario
           </AlertDialogAction>
