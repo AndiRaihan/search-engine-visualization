@@ -7,20 +7,20 @@
 
 ### Scenarios and Input
 
-- [ ] **SCEN-01**: User can select from built-in teaching scenarios with predefined queries, documents, vectors, and learning goals.
-- [ ] **SCEN-02**: User can edit the active query and see all keyword-derived calculations update.
-- [ ] **SCEN-03**: User can edit each document in the active scenario and see all keyword-derived calculations update.
-- [ ] **SCEN-04**: User can reset the selected scenario's query, documents, vectors, and current step to its defaults.
-- [ ] **SCEN-05**: User sees a clear notice that semantic vectors remain curated teaching coordinates after query or document text is edited.
+- [x] **SCEN-01**: User can select from built-in teaching scenarios with predefined queries, documents, vectors, and learning goals.
+- [x] **SCEN-02**: User can edit the active query and see all keyword-derived calculations update.
+- [x] **SCEN-03**: User can edit each document in the active scenario and see all keyword-derived calculations update.
+- [x] **SCEN-04**: User can reset the selected scenario's query, documents, vectors, and current step to its defaults.
+- [x] **SCEN-05**: User sees a clear notice that semantic vectors remain curated teaching coordinates after query or document text is edited.
 
 ### Guided Flow
 
-- [ ] **FLOW-01**: User can start the simulation from the query and document setup step.
-- [ ] **FLOW-02**: User can move to the next available simulation step.
-- [ ] **FLOW-03**: User can return to the previous simulation step.
-- [ ] **FLOW-04**: User can see the current step and overall progress through the simulation.
-- [ ] **FLOW-05**: User can use Run All to advance through the complete simulation sequence.
-- [ ] **FLOW-06**: User can operate Previous, Next, and Run All through documented keyboard controls.
+- [x] **FLOW-01**: User can start the simulation from the query and document setup step.
+- [x] **FLOW-02**: User can move to the next available simulation step.
+- [x] **FLOW-03**: User can return to the previous simulation step.
+- [x] **FLOW-04**: User can see the current step and overall progress through the simulation.
+- [x] **FLOW-05**: User can use Run All to advance through the complete simulation sequence.
+- [x] **FLOW-06**: User can operate Previous, Next, and Run All through documented keyboard controls.
 
 ### Keyword Search
 
@@ -35,29 +35,29 @@
 
 ### Semantic Search
 
-- [ ] **SEMA-01**: User can inspect a worked example where keyword scoring misses a semantically relevant document.
-- [ ] **SEMA-02**: User can see the query and documents represented by labeled, manually curated 2D teaching vectors.
-- [ ] **SEMA-03**: User can inspect a meaning map that plots the query and document vectors and identifies each point without relying on color alone.
-- [ ] **SEMA-04**: User can see lines from the query vector to document vectors when Euclidean distance is selected.
-- [ ] **SEMA-05**: User can inspect the Euclidean distance from the query to every document and see results ranked by smallest distance.
-- [ ] **SEMA-06**: User can inspect the cosine similarity between the query and every document and see results ranked by highest similarity.
-- [ ] **SEMA-07**: User can toggle semantic ranking between Euclidean distance and cosine similarity.
-- [ ] **SEMA-08**: User can read a semantic result explanation generated from the selected displayed metric and curated vectors.
+- [x] **SEMA-01**: User can inspect a worked example where keyword scoring misses a semantically relevant document.
+- [x] **SEMA-02**: User can see the query and documents represented by labeled, manually curated 2D teaching vectors.
+- [x] **SEMA-03**: User can inspect a meaning map that plots the query and document vectors and identifies each point without relying on color alone.
+- [x] **SEMA-04**: User can see lines from the query vector to document vectors when Euclidean distance is selected.
+- [x] **SEMA-05**: User can inspect the Euclidean distance from the query to every document and see results ranked by smallest distance.
+- [x] **SEMA-06**: User can inspect the cosine similarity between the query and every document and see results ranked by highest similarity.
+- [x] **SEMA-07**: User can toggle semantic ranking between Euclidean distance and cosine similarity.
+- [x] **SEMA-08**: User can read a semantic result explanation generated from the selected displayed metric and curated vectors.
 
 ### Final Comparison
 
-- [ ] **COMP-01**: User can compare keyword and selected semantic rankings side by side in the final step.
-- [ ] **COMP-02**: User can see each document's rank in both lists and identify rank changes without relying on color alone.
-- [ ] **COMP-03**: User can read deterministic explanations that cite visible keyword contributions or the selected semantic metric.
+- [x] **COMP-01**: User can compare keyword and selected semantic rankings side by side in the final step.
+- [x] **COMP-02**: User can see each document's rank in both lists and identify rank changes without relying on color alone.
+- [x] **COMP-03**: User can read deterministic explanations that cite visible keyword contributions or the selected semantic metric.
 
 ### Accessibility and Quality
 
-- [ ] **QUAL-01**: User can understand matches, importance, selection, and rank movement through labels, text, shape, or icons in addition to color.
-- [ ] **QUAL-02**: User can read content with sufficient text and interface contrast on the supported desktop viewport.
-- [ ] **QUAL-03**: User who prefers reduced motion can use the full simulation without nonessential animated movement.
-- [ ] **QUAL-04**: Core tokenization, TF, document frequency, IDF, TF-IDF, Euclidean distance, cosine similarity, and ranking functions are covered by unit tests.
-- [ ] **QUAL-05**: Automated browser smoke tests verify app loading, scenario selection, query editing, step navigation, reset, metric toggling, and final comparison.
-- [ ] **QUAL-06**: User can load and run the application as a static browser site without a backend.
+- [x] **QUAL-01**: User can understand matches, importance, selection, and rank movement through labels, text, shape, or icons in addition to color.
+- [x] **QUAL-02**: User can read content with sufficient text and interface contrast on the supported desktop viewport.
+- [x] **QUAL-03**: User who prefers reduced motion can use the full simulation without nonessential animated movement.
+- [x] **QUAL-04**: Core tokenization, TF, document frequency, IDF, TF-IDF, Euclidean distance, cosine similarity, and ranking functions are covered by unit tests.
+- [x] **QUAL-05**: Automated browser smoke tests verify app loading, scenario selection, query editing, step navigation, reset, metric toggling, and final comparison.
+- [x] **QUAL-06**: User can load and run the application as a static browser site without a backend.
 
 ## v2 Requirements
 
@@ -98,17 +98,17 @@ Traceability is populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCEN-01 | Phase 1 | Pending |
-| SCEN-02 | Phase 1 | Pending |
-| SCEN-03 | Phase 1 | Pending |
-| SCEN-04 | Phase 1 | Pending |
-| SCEN-05 | Phase 3 | Pending |
-| FLOW-01 | Phase 1 | Pending |
-| FLOW-02 | Phase 1 | Pending |
-| FLOW-03 | Phase 1 | Pending |
-| FLOW-04 | Phase 1 | Pending |
-| FLOW-05 | Phase 5 | Pending |
-| FLOW-06 | Phase 5 | Pending |
+| SCEN-01 | Phase 1 | Complete |
+| SCEN-02 | Phase 1 | Complete |
+| SCEN-03 | Phase 1 | Complete |
+| SCEN-04 | Phase 1 | Complete |
+| SCEN-05 | Phase 3 | Complete |
+| FLOW-01 | Phase 1 | Complete |
+| FLOW-02 | Phase 1 | Complete |
+| FLOW-03 | Phase 1 | Complete |
+| FLOW-04 | Phase 1 | Complete |
+| FLOW-05 | Phase 5 | Complete |
+| FLOW-06 | Phase 5 | Complete |
 | KEYW-01 | Phase 2 | Complete |
 | KEYW-02 | Phase 2 | Complete |
 | KEYW-03 | Phase 2 | Complete |
@@ -117,23 +117,23 @@ Traceability is populated during roadmap creation.
 | KEYW-06 | Phase 2 | Complete |
 | KEYW-07 | Phase 2 | Complete |
 | KEYW-08 | Phase 2 | Complete |
-| SEMA-01 | Phase 3 | Pending |
-| SEMA-02 | Phase 3 | Pending |
-| SEMA-03 | Phase 3 | Pending |
-| SEMA-04 | Phase 3 | Pending |
-| SEMA-05 | Phase 3 | Pending |
-| SEMA-06 | Phase 4 | Pending |
-| SEMA-07 | Phase 4 | Pending |
-| SEMA-08 | Phase 4 | Pending |
-| COMP-01 | Phase 5 | Pending |
-| COMP-02 | Phase 5 | Pending |
-| COMP-03 | Phase 5 | Pending |
-| QUAL-01 | Phase 5 | Pending |
-| QUAL-02 | Phase 1 | Pending |
-| QUAL-03 | Phase 5 | Pending |
-| QUAL-04 | Phase 4 | Pending |
-| QUAL-05 | Phase 5 | Pending |
-| QUAL-06 | Phase 1 | Pending |
+| SEMA-01 | Phase 3 | Complete |
+| SEMA-02 | Phase 3 | Complete |
+| SEMA-03 | Phase 3 | Complete |
+| SEMA-04 | Phase 3 | Complete |
+| SEMA-05 | Phase 3 | Complete |
+| SEMA-06 | Phase 4 | Complete |
+| SEMA-07 | Phase 4 | Complete |
+| SEMA-08 | Phase 4 | Complete |
+| COMP-01 | Phase 5 | Complete |
+| COMP-02 | Phase 5 | Complete |
+| COMP-03 | Phase 5 | Complete |
+| QUAL-01 | Phase 5 | Complete |
+| QUAL-02 | Phase 1 | Complete |
+| QUAL-03 | Phase 5 | Complete |
+| QUAL-04 | Phase 4 | Complete |
+| QUAL-05 | Phase 5 | Complete |
+| QUAL-06 | Phase 1 | Complete |
 
 **Coverage:**
 
@@ -143,4 +143,4 @@ Traceability is populated during roadmap creation.
 
 ---
 *Requirements defined: 2026-06-14*
-*Last updated: 2026-06-14 after roadmap creation*
+*Last updated: 2026-06-21 after Phase 5 UAT completion*

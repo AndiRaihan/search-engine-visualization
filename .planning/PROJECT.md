@@ -14,19 +14,19 @@ Students can clearly see and explain how each search-processing step changes the
 
 ### Validated
 
-(None yet - ship to validate)
+- Students can select a built-in teaching scenario, edit its query and documents, and reset it to known defaults. (Validated in Phase 1)
+- Students can move forward and backward through a guided search simulation or run all steps. (Validated in Phase 1 & 5)
+- Each step pairs a concise, classroom-friendly explanation with a visual representation of the current calculation. (Validated in Phases 1-5)
+- Students can inspect tokenization, word matching, term frequency, inverse document frequency, TF-IDF, and keyword ranking. (Validated in Phase 2)
+- Students can inspect manually assigned 2D meaning vectors and compare Euclidean-distance and cosine-similarity semantic rankings. (Validated in Phase 3 & 4)
+- The final view compares keyword and semantic rankings side by side so students can observe why results changed. (Validated in Phase 5)
+- Search calculations are deterministic, visible, and implemented as testable pure functions. (Validated in Phases 2-4)
+- The interface is readable on the supported desktop/projector viewport and does not rely on color alone. (Validated in Phases 1-5)
+- The app can be deployed as a static site without a backend. (Validated in Phase 1 & 5)
 
 ### Active
 
-- [ ] Students can select a built-in teaching scenario, edit its query and documents, and reset it to known defaults.
-- [ ] Students can move forward and backward through a guided search simulation or run all steps.
-- [ ] Each step pairs a concise, classroom-friendly explanation with a visual representation of the current calculation.
-- [ ] Students can inspect tokenization, word matching, term frequency, inverse document frequency, TF-IDF, and keyword ranking.
-- [ ] Students can inspect manually assigned 2D meaning vectors and compare Euclidean-distance and cosine-similarity semantic rankings.
-- [ ] The final view compares keyword and semantic rankings side by side so students can observe why results changed.
-- [ ] Search calculations are deterministic, visible, and implemented as testable pure functions.
-- [ ] The interface is readable on the supported desktop/projector viewport and does not rely on color alone.
-- [ ] The app can be deployed as a static site without a backend.
+(None - MVP is fully complete and validated)
 
 ### Out of Scope
 
@@ -64,12 +64,12 @@ Students can clearly see and explain how each search-processing step changes the
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Use English for the MVP interface and teaching copy | Matches the supplied PRD and keeps localization outside the initial learning-flow implementation | - Pending |
-| Compare keyword and semantic rankings side by side in the final view | Direct comparison makes the semantic-search learning gain observable without introducing an arbitrary blended score | - Pending |
-| Use deterministic toy data and manually assigned 2D vectors | Keeps calculations inspectable, stable, and appropriate for first-time learners | - Pending |
-| Build as a static frontend-only application | The small local dataset and teaching workflow require no server-side capabilities | - Pending |
-| Include a Euclidean/cosine semantic metric toggle in v1 | Comparing distance and directional similarity adds a useful ranking lesson without requiring real embeddings | - Pending |
-| Defer tablet-responsive and variable-projector layouts to v2 | The approved v1 scope targets a fixed desktop/projector viewport | - Pending |
+| Use English for the MVP interface and teaching copy | Matches the supplied PRD and keeps localization outside the initial learning-flow implementation | Decided (Phase 1) |
+| Compare keyword and semantic rankings side by side in the final view | Direct comparison makes the semantic-search learning gain observable without introducing an arbitrary blended score | Decided (Phase 5) |
+| Use deterministic toy data and manually assigned 2D vectors | Keeps calculations inspectable, stable, and appropriate for first-time learners | Decided (Phase 3) |
+| Build as a static frontend-only application | The small local dataset and teaching workflow require no server-side capabilities | Decided (Phase 1) |
+| Include a Euclidean/cosine semantic metric toggle in v1 | Comparing distance and directional similarity adds a useful ranking lesson without requiring real embeddings | Decided (Phase 4) |
+| Defer tablet-responsive and variable-projector layouts to v2 | The approved v1 scope targets a fixed desktop/projector viewport | Decided (Phase 1) |
 
 ## Evolution
 
@@ -89,4 +89,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-14 after v1 requirements definition*
+*Last updated: 2026-06-21 after Phase 5 UAT completion*

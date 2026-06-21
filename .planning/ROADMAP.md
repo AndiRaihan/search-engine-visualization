@@ -15,7 +15,7 @@ Build the simulation as five vertical classroom slices. The first phase establis
 - [x] **Phase 2: Keyword Search Journey** - Teach tokenization through deterministic TF-IDF ranking with visible evidence. (completed 2026-06-16)
 - [x] **Phase 3: Euclidean Meaning Journey** - Bridge from keyword limitations to curated vectors and distance-based semantic ranking. (completed 2026-06-16)
 - [x] **Phase 4: Cosine Comparison** - Add cosine similarity, metric switching, and trustworthy semantic explanations. (completed 2026-06-19)
-- [ ] **Phase 5: Final Comparison and Release Readiness** - Compare both ranking models and harden the complete classroom flow.
+- [x] **Phase 5: Final Comparison and Release Readiness** - Compare both ranking models and harden the complete classroom flow. (completed 2026-06-21)
 
 ## Phase Details
 
@@ -154,15 +154,15 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 05-01: Build the side-by-side final comparison, rank movement cues, and cross-model explanations.
+- [x] 05-01: Build the side-by-side final comparison, rank movement cues, and cross-model explanations. (completed 2026-06-21)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-02: Complete Run All, keyboard controls, non-color semantics, focus behavior, and reduced-motion support.
+- [x] 05-02: Complete Run All, keyboard controls, non-color semantics, focus behavior, and reduced-motion support. (completed 2026-06-21)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 05-03: Add critical-flow browser tests and verify the production static build.
+- [x] 05-03: Add critical-flow browser tests and verify the production static build. (completed 2026-06-21)
 
 ## Progress
 
@@ -170,8 +170,8 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Guided Classroom Shell | 3/3 | Complete   | 2026-06-15 |
-| 2. Keyword Search Journey | 3/3 | Complete   | 2026-06-16 |
-| 3. Euclidean Meaning Journey | 3/3 | Complete   | 2026-06-16 |
-| 4. Cosine Comparison | 2/2 | Complete   | 2026-06-19 |
-| 5. Final Comparison and Release Readiness | 0/3 | Not started | - |
+| 1. Guided Classroom Shell | 3/3 | Complete | 2026-06-15 |
+| 2. Keyword Search Journey | 3/3 | Complete | 2026-06-16 |
+| 3. Euclidean Meaning Journey | 3/3 | Complete | 2026-06-16 |
+| 4. Cosine Comparison | 2/2 | Complete | 2026-06-19 |
+| 5. Final Comparison and Release Readiness | 3/3 | Complete | 2026-06-21 |
