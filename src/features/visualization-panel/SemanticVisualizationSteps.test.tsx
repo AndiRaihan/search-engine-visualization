@@ -277,3 +277,188 @@ describe('semantic ranking step', () => {
     expect(screen.getAllByText(new RegExp(lastDocBreakdown.finalDistance, 'i')).length).toBeGreaterThanOrEqual(1)
   })
 })
+
+describe('meaning map zoom and pan', () => {
+  const scenario = scenarios[0]
+  const session = buildSessionFromScenario(scenario)
+  const keywordSnapshot = buildKeywordSnapshot(session.query, session.documents)
+  const semanticSnapshot = buildSemanticSnapshot(session, keywordSnapshot)
+
+  test('zoom and pan buttons update SVG transform group', () => {
+    const { container } = render(<MeaningMap semanticSnapshot={semanticSnapshot} />)
+    
+    // Zoom controls should render
+    const zoomInBtn = screen.getByRole('button', { name: /Zoom In/i })
+    const zoomOutBtn = screen.getByRole('button', { name: /Zoom Out/i })
+    const resetBtn = screen.getByRole('button', { name: /Reset View/i })
+    
+    expect(zoomInBtn).toBeDefined()
+    expect(zoomOutBtn).toBeDefined()
+    expect(resetBtn).toBeDefined()
+
+    // Inner transform group
+    const transformGroup = container.querySelector('svg g[data-testid="zoom-pan-group"]')
+    expect(transformGroup).not.toBeNull()
+
+    // Initial transform should be scale(1) translate(0, 0) (or default)
+    expect(transformGroup?.getAttribute('transform')).toContain('scale(1)')
+
+    // Click zoom in
+    fireEvent.click(zoomInBtn)
+    expect(transformGroup?.getAttribute('transform')).toContain('scale(1.2)')
+
+    // Click zoom out twice
+    fireEvent.click(zoomOutBtn)
+    fireEvent.click(zoomOutBtn)
+    expect(transformGroup?.getAttribute('transform')).toContain('scale(0.83') // 1.2 / 1.2 / 1.2 ~ 0.833
+
+    // Click reset
+    fireEvent.click(resetBtn)
+    expect(transformGroup?.getAttribute('transform')).toContain('scale(1)')
+  })
+
+  test('mouse drag triggers pan translations', () => {
+    const { container } = render(<MeaningMap semanticSnapshot={semanticSnapshot} />)
+    const svg = screen.getByRole('img')
+    const transformGroup = container.querySelector('svg g[data-testid="zoom-pan-group"]')
+
+    // Simulate drag start, drag move, drag end
+    fireEvent.mouseDown(svg, { clientX: 100, clientY: 100 })
+    fireEvent.mouseMove(svg, { clientX: 150, clientY: 120 })
+    
+    // Panning changes translation (translate(50, 20))
+    const transform = transformGroup?.getAttribute('transform')
+    expect(transform).toContain('translate(50, 20)')
+
+    fireEvent.mouseUp(svg)
+    
+    // Move after mouseUp should not change translate
+    fireEvent.mouseMove(svg, { clientX: 200, clientY: 200 })
+    expect(transformGroup?.getAttribute('transform')).toContain('translate(50, 20)')
+  })
+
+  test('mouse wheel triggers scroll zoom', () => {
+    const { container } = render(<MeaningMap semanticSnapshot={semanticSnapshot} />)
+    const svg = screen.getByRole('img')
+    const transformGroup = container.querySelector('svg g[data-testid="zoom-pan-group"]')
+
+    // Wheel scroll down (zoom out)
+    fireEvent.wheel(svg, { deltaY: 100 })
+    expect(transformGroup?.getAttribute('transform')).toContain('scale(0.909')
+
+    // Wheel scroll up (zoom in)
+    fireEvent.wheel(svg, { deltaY: -100 })
+    expect(transformGroup?.getAttribute('transform')).toContain('scale(1)')
+  })
+})
+
+describe('Phase 4 Cosine component UI tests', () => {
+  const scenario = scenarios[0]
+  
+  test('SemanticRankingStep renders Cosine Semantic Ranking header, similarity values, and correct rank suffixes in cosine mode', () => {
+    const session = {
+      ...buildSessionFromScenario(scenario),
+      semanticMetric: 'cosine' as const,
+    }
+    const keywordSnapshot = buildKeywordSnapshot(session.query, session.documents)
+    const semanticSnapshot = buildSemanticSnapshot(session, keywordSnapshot)
+
+    render(
+      <SemanticRankingStep
+        semanticSnapshot={semanticSnapshot}
+        isEdited={false}
+      />
+    )
+
+    // Heading should cite Cosine Semantic Ranking
+    expect(screen.getByRole('heading', { name: /Cosine Semantic Ranking/i })).toBeDefined()
+
+    // It should render Rank 1 (Most Similar) instead of Closest
+    expect(screen.getByText(/Rank 1 \(Most Similar\)/i)).toBeDefined()
+
+    // Document similarity scores should be visible
+    expect(screen.getAllByText(/Similarity:/i).length).toBeGreaterThanOrEqual(1)
+  })
+
+  test('MeaningMap in Cosine mode renders origin rays and hides query-to-document distance lines', () => {
+    const session = {
+      ...buildSessionFromScenario(scenario),
+      semanticMetric: 'cosine' as const,
+    }
+    const keywordSnapshot = buildKeywordSnapshot(session.query, session.documents)
+    const semanticSnapshot = buildSemanticSnapshot(session, keywordSnapshot)
+
+    const { container } = render(
+      <MeaningMap
+        semanticSnapshot={semanticSnapshot}
+        showDistanceLines={true}
+      />
+    )
+
+    // Query-to-document distance lines should be hidden
+    expect(container.querySelector('[data-testid="distance-line"]')).toBeNull()
+
+    // Origin rays should be drawn
+    expect(container.querySelector('[data-testid="origin-ray-query"]')).not.toBeNull()
+    expect(container.querySelectorAll('[data-testid="origin-ray-document"]').length).toBeGreaterThanOrEqual(1)
+  })
+
+  test('SemanticRankingStep displays selected cosine breakdown details', () => {
+    const session = {
+      ...buildSessionFromScenario(scenario),
+      semanticMetric: 'cosine' as const,
+    }
+    const keywordSnapshot = buildKeywordSnapshot(session.query, session.documents)
+    const semanticSnapshot = buildSemanticSnapshot(session, keywordSnapshot)
+
+    render(
+      <SemanticRankingStep
+        semanticSnapshot={semanticSnapshot}
+        isEdited={false}
+      />
+    )
+
+    // Breakdown details should be visible
+    expect(screen.getByText(/Cosine Similarity Calculation for/i)).toBeDefined()
+    expect(screen.getByText(/Dot Product:/i)).toBeDefined()
+    expect(screen.getByText(/Denominator:/i)).toBeDefined()
+
+    // Formatted formula and steps should be clean of raw LaTeX
+    const formulaText = screen.getByText(/sim\(q, d\)/i).textContent || ''
+    expect(formulaText).not.toContain('\\frac')
+    expect(formulaText).not.toContain('\\text')
+    expect(formulaText).not.toContain('\\mathbf')
+    expect(formulaText).not.toContain('\\cdot')
+    expect(formulaText).toContain('•')
+    expect(formulaText).toContain('/')
+  })
+
+  test('selected zero-magnitude vector displays zero vector annotation and triggers polite live-region announcement', () => {
+    const session = {
+      ...buildSessionFromScenario(scenario),
+      semanticMetric: 'cosine' as const,
+    }
+    // Set query coordinates to [0, 0] to force a zero vector magnitude
+    session.vectors.query = [0, 0]
+
+    const keywordSnapshot = buildKeywordSnapshot(session.query, session.documents)
+    const semanticSnapshot = buildSemanticSnapshot(session, keywordSnapshot)
+    const onAnnounce = vi.fn()
+
+    render(
+      <SemanticRankingStep
+        semanticSnapshot={semanticSnapshot}
+        isEdited={false}
+        onAnnounce={onAnnounce}
+      />
+    )
+
+    // Zero vector annotation should display
+    expect(screen.getByTestId('zero-vector-annotation')).toBeDefined()
+    expect(screen.getByText(/Selected vector has zero magnitude. Cosine similarity is defined as 0.000./i)).toBeDefined()
+
+    // It should trigger polite live region announcement
+    expect(onAnnounce).toHaveBeenCalledWith('Selected document vector has zero magnitude. Cosine similarity is 0.000.')
+  })
+})
+

@@ -21,8 +21,11 @@ import {
   rankByEuclideanDistance,
   buildEuclideanBreakdown,
   buildSemanticSnapshot,
+  cosineSimilarity,
+  rankByCosineSimilarity,
+  buildCosineBreakdown,
 } from './simulation'
-import type { Scenario, KeywordDocumentSnapshot } from './simulation'
+import type { Scenario, KeywordDocumentSnapshot, CosineBreakdown } from './simulation'
 import { scenarios } from '@/content/scenarios'
 import { buildKeywordStepSession } from '../test/keyword-step-session'
 
@@ -426,6 +429,132 @@ describe('Phase 3 - semantic vectors and Euclidean distance', () => {
     expect(snapshot.rankedDocuments[0].distance).toBeGreaterThanOrEqual(0)
     expect(snapshot.defaultBreakdown).toBeDefined()
     expect(snapshot.defaultBreakdown.finalDistance).toBeDefined()
+  })
+})
+
+describe('Phase 4 - Cosine similarity and ranking', () => {
+  test('cosine: cosineSimilarity computes dot product divided by vector magnitudes', () => {
+    const sim = cosineSimilarity([0.8, 0.6], [0.8, 0.6]) // identical vectors -> similarity = 1
+    expect(sim).toBeCloseTo(1.0, 5)
+
+    const simOrthogonal = cosineSimilarity([1.0, 0.0], [0.0, 1.0]) // orthogonal vectors -> similarity = 0
+    expect(simOrthogonal).toBe(0)
+
+    const simOpposite = cosineSimilarity([1.0, 1.0], [-1.0, -1.0]) // opposite vectors -> similarity = -1
+    expect(simOpposite).toBeCloseTo(-1.0, 5)
+
+    const simAngle = cosineSimilarity([3.0, 4.0], [4.0, 3.0]) // dot product = 12 + 12 = 24. magnitudes = 5 and 5. sim = 24 / 25 = 0.96
+    expect(simAngle).toBeCloseTo(0.96, 5)
+  })
+
+  test('cosine: zero vector returns finite raw similarity 0 and formats to 0.000', () => {
+    const sim1 = cosineSimilarity([0.0, 0.0], [1.0, 1.0])
+    expect(sim1).toBe(0)
+    expect(formatThreeDecimals(sim1)).toBe('0.000')
+
+    const sim2 = cosineSimilarity([1.0, 1.0], [0.0, 0.0])
+    expect(sim2).toBe(0)
+    expect(formatThreeDecimals(sim2)).toBe('0.000')
+
+    const sim3 = cosineSimilarity([0.0, 0.0], [0.0, 0.0])
+    expect(sim3).toBe(0)
+    expect(formatThreeDecimals(sim3)).toBe('0.000')
+  })
+
+  test('cosine: deterministic ranking sorts by raw highest similarity and uses originalIndex for ties', () => {
+    const queryPoint: [number, number] = [0.5, 0.5]
+    const docs = [
+      { id: 'doc-a', originalIndex: 0, vector: [0.6, 0.6] as [number, number] }, // sim = 1
+      { id: 'doc-b', originalIndex: 1, vector: [0.1, 0.9] as [number, number] }, // sim = (0.05 + 0.45) / (sqrt(0.5) * sqrt(0.82)) = 0.5 / (0.7071 * 0.9055) ~ 0.7808
+      { id: 'doc-c', originalIndex: 2, vector: [0.6, 0.6] as [number, number] }, // sim = 1
+    ]
+
+    const ranked = rankByCosineSimilarity(queryPoint, docs)
+    expect(ranked.length).toBe(3)
+    // Doc A should be rank 1 (sim = 1, originalIndex = 0)
+    expect(ranked[0].id).toBe('doc-a')
+    expect(ranked[0].rank).toBe(1)
+    expect(ranked[0].similarity).toBeCloseTo(1.0, 5)
+
+    // Doc C should be rank 2 (sim = 1, originalIndex = 2) - tie break by originalIndex
+    expect(ranked[1].id).toBe('doc-c')
+    expect(ranked[1].rank).toBe(2)
+    expect(ranked[1].similarity).toBeCloseTo(1.0, 5)
+
+    // Doc B should be rank 3 (sim ~ 0.78)
+    expect(ranked[2].id).toBe('doc-b')
+    expect(ranked[2].rank).toBe(3)
+    expect(ranked[2].similarity).toBeCloseTo(0.780869, 5)
+  })
+
+  test('cosine: cosine breakdown exposes formula, dot product, query length, doc length, denominator, and final similarity', () => {
+    const breakdown = buildCosineBreakdown('Query', 'D1', [0.80, 0.60], [0.60, 0.80])
+    
+    // Formula check
+    expect(breakdown.formula).toBe('\\text{sim}(\\mathbf{q}, \\mathbf{d}) = \\frac{\\mathbf{q} \\cdot \\mathbf{d}}{\\|\\mathbf{q}\\| \\|\\mathbf{d}\\|}')
+    
+    // Dot product substitution and evaluation: (0.80 * 0.60) + (0.60 * 0.80) = 0.48 + 0.48 = 0.96
+    expect(breakdown.dotProduct).toContain('0.80')
+    expect(breakdown.dotProduct).toContain('0.60')
+    expect(breakdown.dotProduct).toContain('0.96')
+
+    // Query length: \sqrt{qx^2 + qy^2} = val
+    expect(breakdown.queryLength).toContain('1.00')
+
+    // Doc length
+    expect(breakdown.docLength).toContain('1.00')
+
+    // Denominator: length q * length d = 1.00 * 1.00 = 1.00
+    expect(breakdown.denominator).toContain('1.00')
+
+    // Final similarity
+    expect(breakdown.finalSimilarity).toBe('0.960')
+  })
+
+  test('cosine: domain engine coverage covers tokenization, TF, IDF, TF-IDF, Euclidean, Cosine, and rankings', () => {
+    expect(tokenize('Hello world')).toEqual(['hello', 'world'])
+    expect(getTermFrequency('hello', ['hello', 'world'])).toBe(0.5)
+    expect(getDocumentFrequency('hello', [['hello', 'world']])).toBe(1)
+    expect(getIdf('hello', [['hello', 'world']])).toBe(0)
+    expect(getTfidf(0.5, 0.5)).toBe(0.25)
+    expect(euclideanDistance([0, 0], [3, 4])).toBe(5)
+    expect(cosineSimilarity([1, 0], [1, 0])).toBe(1)
+    
+    const kwRanked = rankByKeywordScore([
+      {
+        id: '1',
+        text: 'hello',
+        originalIndex: 0,
+        tokens: ['hello'],
+        matchSummary: { matchedTerms: ['hello'], missingTerms: [] },
+        contributions: { hello: { term: 'hello', count: 1, totalWords: 1, tf: 1, idf: 1, tfidf: 1 } },
+        score: 1,
+      }
+    ])
+    expect(kwRanked[0].rank).toBe(1)
+
+    const semRanked = rankByEuclideanDistance([0, 0], [
+      { id: '1', originalIndex: 0, vector: [1, 1] }
+    ])
+    expect(semRanked[0].rank).toBe(1)
+  })
+
+  test('cosine: metricToggled toggles or sets metric without losing progress', () => {
+    const session = buildSessionFromScenario(scenarios[0])
+    expect(session.semanticMetric).toBe('euclidean')
+
+    const setCosineState = simulationReducer(session, { type: 'metricToggled', metric: 'cosine' })
+    expect(setCosineState.semanticMetric).toBe('cosine')
+    expect(setCosineState.query).toBe(session.query)
+
+    const setEuclideanState = simulationReducer(setCosineState, { type: 'metricToggled', metric: 'euclidean' })
+    expect(setEuclideanState.semanticMetric).toBe('euclidean')
+
+    const toggledState1 = simulationReducer(session, { type: 'metricToggled' })
+    expect(toggledState1.semanticMetric).toBe('cosine')
+
+    const toggledState2 = simulationReducer(toggledState1, { type: 'metricToggled' })
+    expect(toggledState2.semanticMetric).toBe('euclidean')
   })
 })
 

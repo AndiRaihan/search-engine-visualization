@@ -49,6 +49,7 @@ export interface SimulationSession {
   documents: SearchDocument[]
   vectors: ScenarioVectors
   activeStepId: StepId
+  semanticMetric: 'euclidean' | 'cosine'
 }
 
 export type SimulationAction =
@@ -59,6 +60,7 @@ export type SimulationAction =
   | { type: 'nextStep' }
   | { type: 'previousStep' }
   | { type: 'resetConfirmed'; scenario: Scenario }
+  | { type: 'metricToggled'; metric?: 'euclidean' | 'cosine' }
 
 export function buildSessionFromScenario(scenario: Scenario): SimulationSession {
   return {
@@ -70,6 +72,7 @@ export function buildSessionFromScenario(scenario: Scenario): SimulationSession 
       documents: { ...scenario.vectors.documents },
     },
     activeStepId: 'setup',
+    semanticMetric: 'euclidean',
   }
 }
 
@@ -125,6 +128,14 @@ export function simulationReducer(
 
     case 'resetConfirmed':
       return buildSessionFromScenario(action.scenario)
+
+    case 'metricToggled': {
+      const nextMetric = action.metric || (state.semanticMetric === 'euclidean' ? 'cosine' : 'euclidean')
+      return {
+        ...state,
+        semanticMetric: nextMetric,
+      }
+    }
 
     default:
       return state
@@ -418,9 +429,11 @@ export interface SemanticRankedDocument {
   text: string
   originalIndex: number
   distance: number
+  similarity?: number
   rank: number
   coordinates: Vector2D
   breakdown: EuclideanBreakdown
+  cosineBreakdown?: CosineBreakdown
 }
 
 export interface SemanticMissedDocument {
@@ -443,12 +456,23 @@ export interface EuclideanBreakdown {
   finalDistance: string
 }
 
+export interface CosineBreakdown {
+  formula: string
+  dotProduct: string
+  queryLength: string
+  docLength: string
+  denominator: string
+  finalSimilarity: string
+}
+
 export interface SemanticSnapshot {
   queryPoint: SemanticPoint
   documentPoints: SemanticPoint[]
   rankedDocuments: SemanticRankedDocument[]
   missedDocuments: SemanticMissedDocument[]
   defaultBreakdown: EuclideanBreakdown
+  defaultCosineBreakdown?: CosineBreakdown
+  metric: 'euclidean' | 'cosine'
 }
 
 export function formatTwoDecimals(value: number): string {
@@ -533,6 +557,82 @@ export function buildEuclideanBreakdown(
   }
 }
 
+export function cosineSimilarity(p1: Vector2D, p2: Vector2D): number {
+  const mag1 = Math.sqrt(p1[0] * p1[0] + p1[1] * p1[1])
+  const mag2 = Math.sqrt(p2[0] * p2[0] + p2[1] * p2[1])
+  if (mag1 === 0 || mag2 === 0) {
+    return 0
+  }
+  const dot = p1[0] * p2[0] + p1[1] * p2[1]
+  const raw = dot / (mag1 * mag2)
+  return Math.max(-1, Math.min(1, raw))
+}
+
+export function rankByCosineSimilarity(
+  queryCoords: Vector2D,
+  documents: { id: string; originalIndex: number; vector: Vector2D }[]
+): { id: string; originalIndex: number; similarity: number; rank: number }[] {
+  const scored = documents.map((doc) => {
+    const similarity = cosineSimilarity(queryCoords, doc.vector)
+    return {
+      id: doc.id,
+      originalIndex: doc.originalIndex,
+      similarity,
+    }
+  })
+
+  scored.sort((a, b) => {
+    if (Math.abs(a.similarity - b.similarity) > 1e-9) {
+      return b.similarity - a.similarity
+    }
+    return a.originalIndex - b.originalIndex
+  })
+
+  return scored.map((item, idx) => ({
+    ...item,
+    rank: idx + 1,
+  }))
+}
+
+export function buildCosineBreakdown(
+  queryLabel: string,
+  docLabel: string,
+  queryCoords: Vector2D,
+  docCoords: Vector2D
+): CosineBreakdown {
+  const qx = queryCoords[0]
+  const qy = queryCoords[1]
+  const dx = docCoords[0]
+  const dy = docCoords[1]
+
+  const dot = qx * dx + qy * dy
+  const magQ = Math.sqrt(qx * qx + qy * qy)
+  const magD = Math.sqrt(dx * dx + dy * dy)
+  const denom = magQ * magD
+  const sim = denom === 0 ? 0 : dot / denom
+  const clampedSim = Math.max(-1, Math.min(1, sim))
+
+  const qxStr = formatTwoDecimals(qx)
+  const qyStr = formatTwoDecimals(qy)
+  const dxStr = formatTwoDecimals(dx)
+  const dyStr = formatTwoDecimals(dy)
+
+  const dotStr = formatThreeDecimals(dot)
+  const magQStr = formatThreeDecimals(magQ)
+  const magDStr = formatThreeDecimals(magD)
+  const denomStr = formatThreeDecimals(denom)
+  const simStr = formatThreeDecimals(clampedSim)
+
+  return {
+    formula: '\\text{sim}(\\mathbf{q}, \\mathbf{d}) = \\frac{\\mathbf{q} \\cdot \\mathbf{d}}{\\|\\mathbf{q}\\| \\|\\mathbf{d}\\|}',
+    dotProduct: `\\mathbf{q} \\cdot \\mathbf{d} = q_x d_x + q_y d_y = (${qxStr} \\times ${dxStr}) + (${qyStr} \\times ${dyStr}) = ${dotStr}`,
+    queryLength: `\\|\\mathbf{q}\\| = \\sqrt{q_x^2 + q_y^2} = \\sqrt{(${qxStr})^2 + (${qyStr})^2} = ${magQStr}`,
+    docLength: `\\|\\mathbf{d}\\| = \\sqrt{d_x^2 + d_y^2} = \\sqrt{(${dxStr})^2 + (${dyStr})^2} = ${magDStr}`,
+    denominator: `\\|\\mathbf{q}\\| \\|\\mathbf{d}\\| = ${magQStr} \\times ${magDStr} = ${denomStr}`,
+    finalSimilarity: simStr,
+  }
+}
+
 export function buildSemanticSnapshot(
   session: SimulationSession,
   keywordSnapshot: KeywordSnapshot
@@ -562,24 +662,40 @@ export function buildSemanticSnapshot(
     }
   })
 
-  const rankedScored = rankByEuclideanDistance(session.vectors.query, docsForRanking)
+  const metric = session.semanticMetric || 'euclidean'
+  let rankedScored: { id: string; originalIndex: number; rank: number; distance?: number; similarity?: number }[] = []
+
+  if (metric === 'cosine') {
+    const cosineRanked = rankByCosineSimilarity(session.vectors.query, docsForRanking)
+    rankedScored = cosineRanked
+  } else {
+    const euclideanRanked = rankByEuclideanDistance(session.vectors.query, docsForRanking)
+    rankedScored = euclideanRanked
+  }
 
   const rankedDocuments: SemanticRankedDocument[] = rankedScored.map((rankedItem) => {
     const doc = session.documents.find((d) => d.id === rankedItem.id)!
     const docIdx = session.documents.findIndex((d) => d.id === rankedItem.id)
     const docLabel = `D${docIdx + 1}`
     const vector = session.vectors.documents[rankedItem.id] || [0, 0]
+    
+    const distance = rankedItem.distance ?? euclideanDistance(session.vectors.query, vector)
+    const similarity = rankedItem.similarity ?? cosineSimilarity(session.vectors.query, vector)
+    
     const breakdown = buildEuclideanBreakdown('Query', docLabel, session.vectors.query, vector)
+    const cosineBreakdown = buildCosineBreakdown('Query', docLabel, session.vectors.query, vector)
 
     return {
       id: rankedItem.id,
       title: doc.title,
       text: doc.text,
       originalIndex: rankedItem.originalIndex,
-      distance: rankedItem.distance,
+      distance,
+      similarity,
       rank: rankedItem.rank,
       coordinates: vector,
       breakdown,
+      cosineBreakdown,
     }
   })
 
@@ -608,12 +724,19 @@ export function buildSemanticSnapshot(
       ? rankedDocuments[0].breakdown
       : buildEuclideanBreakdown('Query', 'D1', session.vectors.query, [0, 0])
 
+  const defaultCosineBreakdown =
+    rankedDocuments.length > 0
+      ? rankedDocuments[0].cosineBreakdown
+      : buildCosineBreakdown('Query', 'D1', session.vectors.query, [0, 0])
+
   return {
     queryPoint,
     documentPoints,
     rankedDocuments,
     missedDocuments,
     defaultBreakdown,
+    defaultCosineBreakdown,
+    metric,
   }
 }
 

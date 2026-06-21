@@ -46,7 +46,19 @@ export default function App() {
 
   const semanticSnapshot = useMemo(() => {
     return buildSemanticSnapshot(session, keywordSnapshot)
-  }, [session, keywordSnapshot])
+  }, [session, session.semanticMetric, keywordSnapshot])
+
+  const prevMetricRef = useRef(session.semanticMetric)
+  useEffect(() => {
+    if (prevMetricRef.current !== session.semanticMetric) {
+      if (session.semanticMetric === 'cosine') {
+        setAnnouncement('Switched to Cosine similarity metric. Documents ranked by highest similarity.')
+      } else {
+        setAnnouncement('Switched to Euclidean distance metric. Documents ranked by smallest distance.')
+      }
+      prevMetricRef.current = session.semanticMetric
+    }
+  }, [session.semanticMetric])
 
   // Focus redirection and live announcement when scenario changes
   useEffect(() => {
@@ -158,7 +170,11 @@ export default function App() {
             currentStepIndex={currentStepIndex}
             totalSteps={lessonSteps.length - 1}
             activeStepTitle={activeStep.title}
-            activeStepDescription={activeStep.description}
+            activeStepDescription={
+              session.activeStepId === 'semantic-ranking' && session.semanticMetric === 'cosine'
+                ? 'This step measures the direction alignment (cosine similarity) between the query and documents on the meaning map to rank them.'
+                : activeStep.description
+            }
             progress={selectProgress(session.activeStepId)}
             canGoPrevious={selectCanGoPrevious(session.activeStepId)}
             canGoNext={selectCanGoNext(session.activeStepId)}
@@ -168,7 +184,7 @@ export default function App() {
             stepHeadingRef={stepHeadingRef}
           />
         </section>
-
+ 
         {/* Right Panel: Visualization */}
         <VisualizationPanel
           activeStepId={session.activeStepId}
@@ -179,6 +195,8 @@ export default function App() {
           isEdited={isEdited}
           activeScenarioId={session.scenarioId}
           onSwitchToKeywordMissesMeaning={handleSwitchToKeywordMissesMeaning}
+          semanticMetric={session.semanticMetric}
+          onSemanticMetricChange={(metric) => dispatch({ type: 'metricToggled', metric })}
         />
       </main>
 

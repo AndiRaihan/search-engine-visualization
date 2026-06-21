@@ -1,6 +1,6 @@
 import React from 'react'
 import { AlertCircle } from 'lucide-react'
-import type { SemanticSnapshot, KeywordSnapshot, SemanticRankedDocument, EuclideanBreakdown } from '@/domain/simulation'
+import type { SemanticSnapshot, KeywordSnapshot, SemanticRankedDocument, EuclideanBreakdown, CosineBreakdown } from '@/domain/simulation'
 import { formatThreeDecimals, formatTwoDecimals } from '@/domain/simulation'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -51,13 +51,16 @@ interface DistanceTableProps {
   rankedDocuments: SemanticRankedDocument[]
   selectedDocumentId: string
   onSelectDocument: (id: string) => void
+  metric?: 'euclidean' | 'cosine'
 }
 
 export const DistanceTable: React.FC<DistanceTableProps> = ({
   rankedDocuments,
   selectedDocumentId,
   onSelectDocument,
+  metric = 'euclidean',
 }) => {
+  const isCosine = metric === 'cosine'
   return (
     <div className="overflow-x-auto border border-border-custom rounded-[8px] bg-secondary w-full">
       <table className="w-full text-left border-collapse text-body">
@@ -65,7 +68,7 @@ export const DistanceTable: React.FC<DistanceTableProps> = ({
           <tr className="border-b border-border-custom text-label font-weight-bold text-primary-text bg-subtle-surface/30">
             <th className="py-sm px-md">Rank</th>
             <th className="py-sm px-md">Document</th>
-            <th className="py-sm px-md text-right">Distance</th>
+            <th className="py-sm px-md text-right">{isCosine ? 'Similarity' : 'Distance'}</th>
           </tr>
         </thead>
         <tbody>
@@ -73,9 +76,9 @@ export const DistanceTable: React.FC<DistanceTableProps> = ({
             const isSelected = doc.id === selectedDocumentId
             let rankLabel = `Rank ${doc.rank}`
             if (idx === 0) {
-              rankLabel = `Rank 1 (Closest)`
+              rankLabel = isCosine ? `Rank 1 (Most Similar)` : `Rank 1 (Closest)`
             } else if (idx === rankedDocuments.length - 1) {
-              rankLabel = `Rank ${doc.rank} (Furthest)`
+              rankLabel = isCosine ? `Rank ${doc.rank} (Most Dissimilar)` : `Rank ${doc.rank} (Furthest)`
             }
             return (
               <tr
@@ -93,7 +96,7 @@ export const DistanceTable: React.FC<DistanceTableProps> = ({
                   D{doc.originalIndex + 1} ({doc.title || doc.id})
                 </td>
                 <td className="py-sm px-md text-right font-tabular">
-                  {formatThreeDecimals(doc.distance)}
+                  {isCosine ? formatThreeDecimals(doc.similarity ?? 0) : formatThreeDecimals(doc.distance)}
                 </td>
               </tr>
             )
@@ -108,13 +111,16 @@ interface SemanticRankingListProps {
   rankedDocuments: SemanticRankedDocument[]
   selectedDocumentId: string
   onSelectDocument: (id: string) => void
+  metric?: 'euclidean' | 'cosine'
 }
 
 export const SemanticRankingList: React.FC<SemanticRankingListProps> = ({
   rankedDocuments,
   selectedDocumentId,
   onSelectDocument,
+  metric = 'euclidean',
 }) => {
+  const isCosine = metric === 'cosine'
   return (
     <ul className="flex flex-col gap-sm w-full" role="list">
       {rankedDocuments.map((doc, idx) => {
@@ -122,9 +128,9 @@ export const SemanticRankingList: React.FC<SemanticRankingListProps> = ({
         
         let rankLabel = `Rank ${doc.rank}`
         if (idx === 0) {
-          rankLabel = `Rank 1 (Closest)`
+          rankLabel = isCosine ? `Rank 1 (Most Similar)` : `Rank 1 (Closest)`
         } else if (idx === rankedDocuments.length - 1) {
-          rankLabel = `Rank ${doc.rank} (Furthest)`
+          rankLabel = isCosine ? `Rank ${doc.rank} (Most Dissimilar)` : `Rank ${doc.rank} (Furthest)`
         }
 
         return (
@@ -144,7 +150,7 @@ export const SemanticRankingList: React.FC<SemanticRankingListProps> = ({
               <div className="flex justify-between items-center">
                 <span className="text-[14px] font-bold text-primary-text">{rankLabel}</span>
                 <span className="text-[16px] text-primary-text font-tabular font-bold">
-                  Distance: {formatThreeDecimals(doc.distance)}
+                  {isCosine ? `Similarity: ${formatThreeDecimals(doc.similarity ?? 0)}` : `Distance: ${formatThreeDecimals(doc.distance)}`}
                 </span>
               </div>
               <div className="mt-xs text-[14px] text-muted-text">
@@ -185,7 +191,7 @@ export const EuclideanBreakdownPanel: React.FC<EuclideanBreakdownPanelProps> = (
     <Card className="border border-border-custom bg-secondary">
       <CardHeader>
         <CardTitle className="text-body font-weight-bold text-primary-text">
-          Distance Calculation for {documentLabel} ({documentTitle || 'Untitled'})
+          Distance Calculation for {documentLabel}{documentTitle ? ` (${documentTitle})` : ''}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-sm font-tabular text-body text-primary-text">
@@ -216,15 +222,105 @@ export const EuclideanBreakdownPanel: React.FC<EuclideanBreakdownPanelProps> = (
   )
 }
 
-export const SemanticRankingStep: React.FC<StepProps> = ({ semanticSnapshot, isEdited }) => {
+interface CosineBreakdownPanelProps {
+  breakdown: CosineBreakdown
+  documentLabel: string
+  documentTitle?: string
+  isZeroVector: boolean
+}
+
+export const CosineBreakdownPanel: React.FC<CosineBreakdownPanelProps> = ({
+  breakdown,
+  documentLabel,
+  documentTitle,
+  isZeroVector,
+}) => {
+  const formatMath = (latexStr: string): string => {
+    return latexStr
+      .replace(/\\text\{([^}]+)\}/g, '$1')
+      .replace(/\\mathbf\{([^}]+)\}/g, '$1')
+      .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1) / ($2)')
+      .replace(/\\sqrt\{([^}]+)\}/g, '√($1)')
+      .replace(/\\cdot/g, '•')
+      .replace(/\\\|/g, '||')
+      .replace(/\\times/g, '×')
+      .replace(/\^2/g, '²')
+      .replace(/_x/g, 'ₓ')
+      .replace(/_y/g, 'ᵧ')
+  }
+
+  return (
+    <Card className="border border-border-custom bg-secondary">
+      <CardHeader>
+        <CardTitle className="text-body font-weight-bold text-primary-text">
+          Cosine Similarity Calculation for {documentLabel}{documentTitle ? ` (${documentTitle})` : ''}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-sm font-tabular text-body text-primary-text">
+        <div className="grid grid-cols-[140px_1fr] gap-x-md gap-y-sm">
+          <div className="text-muted-text font-bold">Formula:</div>
+          <div className="font-mono bg-subtle-surface/50 px-sm py-xs rounded">{formatMath(breakdown.formula)}</div>
+
+          <div className="text-muted-text font-bold">Dot Product:</div>
+          <div className="font-mono bg-subtle-surface/50 px-sm py-xs rounded">{formatMath(breakdown.dotProduct)}</div>
+
+          <div className="text-muted-text font-bold">Query Length:</div>
+          <div className="font-mono bg-subtle-surface/50 px-sm py-xs rounded">{formatMath(breakdown.queryLength)}</div>
+
+          <div className="text-muted-text font-bold">Doc Length:</div>
+          <div className="font-mono bg-subtle-surface/50 px-sm py-xs rounded">{formatMath(breakdown.docLength)}</div>
+
+          <div className="text-muted-text font-bold">Denominator:</div>
+          <div className="font-mono bg-subtle-surface/50 px-sm py-xs rounded">{formatMath(breakdown.denominator)}</div>
+
+          <div className="text-muted-text font-bold">Final Similarity:</div>
+          <div className="font-bold text-accent-fill font-mono bg-subtle-surface/50 px-sm py-xs rounded">
+            sim = {breakdown.finalSimilarity}
+          </div>
+        </div>
+
+        {isZeroVector && (
+          <div className="mt-md text-[14px] text-destructive-fill font-bold flex gap-xs items-center" data-testid="zero-vector-annotation">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>Selected vector has zero magnitude. Cosine similarity is defined as 0.000.</span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+interface StepProps {
+  semanticSnapshot: SemanticSnapshot
+  isEdited: boolean
+  onAnnounce?: (message: string) => void
+}
+
+export const SemanticRankingStep: React.FC<StepProps> = ({ semanticSnapshot, isEdited, onAnnounce }) => {
   const [selectedDocumentId, setSelectedDocumentId] = React.useState<string>(
     semanticSnapshot.rankedDocuments[0]?.id || ''
   )
+
+  React.useEffect(() => {
+    if (selectedDocumentId && !semanticSnapshot.rankedDocuments.some(d => d.id === selectedDocumentId)) {
+      setSelectedDocumentId(semanticSnapshot.rankedDocuments[0]?.id || '')
+    }
+  }, [semanticSnapshot.rankedDocuments, selectedDocumentId])
 
   const selectedDoc = semanticSnapshot.rankedDocuments.find((d) => d.id === selectedDocumentId)
   
   const selectedDocIndex = semanticSnapshot.documentPoints.findIndex((p) => p.id === selectedDocumentId)
   const selectedDocLabel = selectedDocIndex !== -1 ? `D${selectedDocIndex + 1}` : 'Selected Document'
+
+  const queryCoords = semanticSnapshot.queryPoint.coordinates
+  const docCoords = selectedDoc?.coordinates || [0, 0]
+  const isZeroVector = (queryCoords[0] === 0 && queryCoords[1] === 0) || (docCoords[0] === 0 && docCoords[1] === 0)
+
+  React.useEffect(() => {
+    if (semanticSnapshot.metric === 'cosine' && selectedDoc && isZeroVector) {
+      onAnnounce?.('Selected document vector has zero magnitude. Cosine similarity is 0.000.')
+    }
+  }, [semanticSnapshot.metric, selectedDocumentId, isZeroVector, onAnnounce])
 
   return (
     <div className="flex flex-col gap-xl">
@@ -239,22 +335,34 @@ export const SemanticRankingStep: React.FC<StepProps> = ({ semanticSnapshot, isE
           />
         </div>
         <div className="w-full lg:w-1/2 flex flex-col gap-md">
-          <h3 className="text-heading font-weight-bold text-primary-text">Semantic Ranking</h3>
+          <h3 className="text-heading font-weight-bold text-primary-text">
+            {semanticSnapshot.metric === 'cosine' ? 'Cosine Semantic Ranking' : 'Semantic Ranking'}
+          </h3>
           <SemanticRankingList
             rankedDocuments={semanticSnapshot.rankedDocuments}
             selectedDocumentId={selectedDocumentId}
             onSelectDocument={setSelectedDocumentId}
+            metric={semanticSnapshot.metric}
           />
         </div>
       </div>
 
       {selectedDoc && (
         <div className="w-full">
-          <EuclideanBreakdownPanel
-            breakdown={selectedDoc.breakdown}
-            documentLabel={selectedDocLabel}
-            documentTitle={selectedDoc.title}
-          />
+          {semanticSnapshot.metric === 'cosine' ? (
+            <CosineBreakdownPanel
+              breakdown={selectedDoc.cosineBreakdown!}
+              documentLabel={selectedDocLabel}
+              documentTitle={selectedDoc.title}
+              isZeroVector={isZeroVector}
+            />
+          ) : (
+            <EuclideanBreakdownPanel
+              breakdown={selectedDoc.breakdown}
+              documentLabel={selectedDocLabel}
+              documentTitle={selectedDoc.title}
+            />
+          )}
         </div>
       )}
     </div>
@@ -276,6 +384,41 @@ export const MeaningMap: React.FC<MeaningMapProps> = ({
     semanticSnapshot.queryPoint,
     ...semanticSnapshot.documentPoints
   ]
+
+  // Zoom and Pan States
+  const [zoom, setZoom] = React.useState(1.0)
+  const [pan, setPan] = React.useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = React.useState(false)
+  const dragStart = React.useRef({ x: 0, y: 0 })
+
+  const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
+    setIsDragging(true)
+    dragStart.current = { x: e.clientX - pan.x, y: e.clientY - pan.y }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!isDragging) return
+    setPan({
+      x: e.clientX - dragStart.current.x,
+      y: e.clientY - dragStart.current.y
+    })
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  const handleMouseLeave = () => {
+    setIsDragging(false)
+  }
+
+  const handleWheel = (e: React.WheelEvent<SVGSVGElement>) => {
+    e.preventDefault()
+    const zoomFactor = 1.1
+    const nextZoom = e.deltaY < 0 ? zoom * zoomFactor : zoom / zoomFactor
+    const clampedZoom = Math.min(Math.max(nextZoom, 0.5), 5.0)
+    setZoom(clampedZoom)
+  }
 
   // Map coordinates in [0, 1] to SVG coordinates:
   // padding left: 60, padding right: 40, padding top: 40, padding bottom: 60
@@ -309,197 +452,279 @@ export const MeaningMap: React.FC<MeaningMapProps> = ({
   const ticks = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 
   return (
-    <svg
-      role="img"
-      aria-labelledby="meaning-map-title meaning-map-desc"
-      viewBox="0 0 500 500"
-      className="w-full max-w-[500px] h-auto bg-secondary border border-border-custom rounded-[8px] p-md"
-    >
-      <title id="meaning-map-title">Meaning Map</title>
-      <desc id="meaning-map-desc">
-        A 2D scatter plot mapping the query and documents as vectors in a semantic space. The query is marked as a teal star and documents are marked as circles.
-      </desc>
-
-      {/* Grid Lines */}
-      {ticks.map((tick) => {
-        const x = toSvgX(tick)
-        const y = toSvgY(tick)
-        return (
-          <React.Fragment key={`grid-${tick}`}>
-            {/* Vertical line */}
-            <line
-              x1={x}
-              y1={paddingTop}
-              x2={x}
-              y2={paddingTop + chartHeight}
-              stroke="#AAB7BE"
-              strokeWidth={1}
-              strokeDasharray="2,2"
-            />
-            {/* Horizontal line */}
-            <line
-              x1={paddingLeft}
-              y1={y}
-              x2={paddingLeft + chartWidth}
-              y2={y}
-              stroke="#AAB7BE"
-              strokeWidth={1}
-              strokeDasharray="2,2"
-            />
-          </React.Fragment>
-        )
-      })}
-
-      {/* Solid Axis Lines */}
-      <line
-        x1={paddingLeft}
-        y1={paddingTop + chartHeight}
-        x2={paddingLeft + chartWidth}
-        y2={paddingTop + chartHeight}
-        stroke="#17212B"
-        strokeWidth={2}
-      />
-      <line
-        x1={paddingLeft}
-        y1={paddingTop}
-        x2={paddingLeft}
-        y2={paddingTop + chartHeight}
-        stroke="#17212B"
-        strokeWidth={2}
-      />
-
-      {/* Tick Labels */}
-      {ticks.map((tick) => {
-        const x = toSvgX(tick)
-        const y = toSvgY(tick)
-        const tickStr = tick.toFixed(1)
-        return (
-          <React.Fragment key={`tick-label-${tick}`}>
-            {/* X-axis tick label */}
-            <text
-              x={x}
-              y={paddingTop + chartHeight + 20}
-              textAnchor="middle"
-              className="text-[12px] font-tabular fill-muted-text"
-            >
-              {tickStr}
-            </text>
-            {/* Y-axis tick label */}
-            <text
-              x={paddingLeft - 10}
-              y={y + 4}
-              textAnchor="end"
-              className="text-[12px] font-tabular fill-muted-text"
-            >
-              {tickStr}
-            </text>
-          </React.Fragment>
-        )
-      })}
-
-      {/* Axis Titles */}
-      <text
-        x={paddingLeft + chartWidth / 2}
-        y={paddingTop + chartHeight + 45}
-        textAnchor="middle"
-        className="text-[14px] font-bold fill-primary-text"
+    <div className="relative w-full max-w-[500px]">
+      <svg
+        role="img"
+        aria-labelledby="meaning-map-title meaning-map-desc"
+        viewBox="0 0 500 500"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        onWheel={handleWheel}
+        className="w-full h-auto bg-secondary border border-border-custom rounded-[8px] p-md cursor-grab active:cursor-grabbing select-none"
       >
-        Dimension 1
-      </text>
-      <text
-        transform="rotate(-90 15 240)"
-        x={15}
-        y={240}
-        textAnchor="middle"
-        className="text-[14px] font-bold fill-primary-text"
-      >
-        Dimension 2
-      </text>
+        <title id="meaning-map-title">Meaning Map</title>
+        <desc id="meaning-map-desc">
+          A 2D scatter plot mapping the query and documents as vectors in a semantic space. The query is marked as a teal star and documents are marked as circles.
+        </desc>
 
-      {/* Distance Lines (from query to documents, if requested) */}
-      {showDistanceLines &&
-        semanticSnapshot.documentPoints.map((docPoint) => {
-          const [qx, qy] = semanticSnapshot.queryPoint.coordinates
-          const [dx, dy] = docPoint.coordinates
-          const qSvgX = toSvgX(qx)
-          const qSvgY = toSvgY(qy)
-          const dSvgX = toSvgX(dx)
-          const dSvgY = toSvgY(dy)
-          return (
-            <line
-              key={`line-${docPoint.id}`}
-              x1={qSvgX}
-              y1={qSvgY}
-              x2={dSvgX}
-              y2={dSvgY}
-              className="stroke-accent-fill opacity-80"
-              stroke="#087F8C"
-              strokeWidth={1.5}
-              strokeDasharray="4,4"
-            />
-          )
-        })}
+        <g data-testid="zoom-pan-group" transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+          {/* Grid Lines */}
+          {ticks.map((tick) => {
+            const x = toSvgX(tick)
+            const y = toSvgY(tick)
+            return (
+              <React.Fragment key={`grid-${tick}`}>
+                {/* Vertical line */}
+                <line
+                  x1={x}
+                  y1={paddingTop}
+                  x2={x}
+                  y2={paddingTop + chartHeight}
+                  stroke="#AAB7BE"
+                  strokeWidth={1}
+                  strokeDasharray="2,2"
+                />
+                {/* Horizontal line */}
+                <line
+                  x1={paddingLeft}
+                  y1={y}
+                  x2={paddingLeft + chartWidth}
+                  y2={y}
+                  stroke="#AAB7BE"
+                  strokeWidth={1}
+                  strokeDasharray="2,2"
+                />
+              </React.Fragment>
+            )
+          })}
 
-      {/* Points & Labels */}
-      {points.map((pt) => {
-        const [px, py] = pt.coordinates
-        const svgX = toSvgX(px)
-        const svgY = toSvgY(py)
+          {/* Solid Axis Lines */}
+          <line
+            x1={paddingLeft}
+            y1={paddingTop + chartHeight}
+            x2={paddingLeft + chartWidth}
+            y2={paddingTop + chartHeight}
+            stroke="#17212B"
+            strokeWidth={2}
+          />
+          <line
+            x1={paddingLeft}
+            y1={paddingTop}
+            x2={paddingLeft}
+            y2={paddingTop + chartHeight}
+            stroke="#17212B"
+            strokeWidth={2}
+          />
 
-        if (pt.id === 'query') {
-          return (
-            <g key={pt.id}>
-              <path
-                d={getStarPath(svgX, svgY, 5, 10, 4)}
-                className="fill-accent-fill stroke-accent-fill"
-                stroke="#087F8C"
-                fill="#087F8C"
-                strokeWidth={1.5}
-              />
-              <text
-                x={svgX + 12}
-                y={svgY + 4}
-                textAnchor="start"
-                className="text-[12px] font-bold fill-primary-text"
-              >
-                {pt.label}
-              </text>
-            </g>
-          )
-        } else {
-          const isSelected = pt.id === selectedDocumentId
-          return (
-            <g key={pt.id}>
-              <circle
-                cx={svgX}
-                cy={svgY}
-                r={isSelected ? 8 : 6}
-                className={cn(
-                  "stroke-primary-text transition-all",
-                  isSelected
-                    ? "fill-accent-fill stroke-accent-fill"
-                    : "fill-secondary"
-                )}
-                stroke={isSelected ? "#087F8C" : "#17212B"}
-                fill={isSelected ? "#087F8C" : "#FFFFFF"}
-                strokeWidth={2}
-              />
-              <text
-                x={svgX + 10}
-                y={svgY + 4}
-                textAnchor="start"
-                className={cn(
-                  "text-[12px] font-bold transition-all",
-                  isSelected ? "fill-accent-fill font-bold" : "fill-primary-text"
-                )}
-              >
-                {pt.label}
-              </text>
-            </g>
-          )
-        }
-      })}
-    </svg>
+          {/* Tick Labels */}
+          {ticks.map((tick) => {
+            const x = toSvgX(tick)
+            const y = toSvgY(tick)
+            const tickStr = tick.toFixed(1)
+            return (
+              <React.Fragment key={`tick-label-${tick}`}>
+                {/* X-axis tick label */}
+                <text
+                  x={x}
+                  y={paddingTop + chartHeight + 20}
+                  textAnchor="middle"
+                  className="text-[12px] font-tabular fill-muted-text"
+                >
+                  {tickStr}
+                </text>
+                {/* Y-axis tick label */}
+                <text
+                  x={paddingLeft - 10}
+                  y={y + 4}
+                  textAnchor="end"
+                  className="text-[12px] font-tabular fill-muted-text"
+                >
+                  {tickStr}
+                </text>
+              </React.Fragment>
+            )
+          })}
+
+          {/* Axis Titles */}
+          <text
+            x={paddingLeft + chartWidth / 2}
+            y={paddingTop + chartHeight + 45}
+            textAnchor="middle"
+            className="text-[14px] font-bold fill-primary-text"
+          >
+            Dimension 1
+          </text>
+          <text
+            transform="rotate(-90 15 240)"
+            x={15}
+            y={240}
+            textAnchor="middle"
+            className="text-[14px] font-bold fill-primary-text"
+          >
+            Dimension 2
+          </text>
+
+          {/* Distance Lines (from query to documents, if requested and in euclidean mode) */}
+          {showDistanceLines && semanticSnapshot.metric !== 'cosine' &&
+            semanticSnapshot.documentPoints.map((docPoint) => {
+              const [qx, qy] = semanticSnapshot.queryPoint.coordinates
+              const [dx, dy] = docPoint.coordinates
+              const qSvgX = toSvgX(qx)
+              const qSvgY = toSvgY(qy)
+              const dSvgX = toSvgX(dx)
+              const dSvgY = toSvgY(dy)
+              return (
+                <line
+                  key={`line-${docPoint.id}`}
+                  data-testid="distance-line"
+                  x1={qSvgX}
+                  y1={qSvgY}
+                  x2={dSvgX}
+                  y2={dSvgY}
+                  className="stroke-accent-fill opacity-80"
+                  stroke="#087F8C"
+                  strokeWidth={1.5}
+                  strokeDasharray="4,4"
+                />
+              )
+            })}
+
+          {/* Cosine Origin Rays (from origin to query and documents, if in cosine mode) */}
+          {showDistanceLines && semanticSnapshot.metric === 'cosine' && (
+            <>
+              {/* Ray to Query */}
+              {(() => {
+                const [qx, qy] = semanticSnapshot.queryPoint.coordinates
+                return (
+                  <line
+                    data-testid="origin-ray-query"
+                    x1={toSvgX(0)}
+                    y1={toSvgY(0)}
+                    x2={toSvgX(qx)}
+                    y2={toSvgY(qy)}
+                    className="stroke-accent-fill opacity-80"
+                    stroke="#087F8C"
+                    strokeWidth={1.5}
+                    strokeDasharray="4,4"
+                  />
+                )
+              })()}
+              {/* Rays to Documents */}
+              {semanticSnapshot.documentPoints.map((docPoint) => {
+                const [dx, dy] = docPoint.coordinates
+                return (
+                  <line
+                    key={`ray-${docPoint.id}`}
+                    data-testid="origin-ray-document"
+                    x1={toSvgX(0)}
+                    y1={toSvgY(0)}
+                    x2={toSvgX(dx)}
+                    y2={toSvgY(dy)}
+                    className="stroke-muted-text opacity-60"
+                    stroke="#465766"
+                    strokeWidth={1.5}
+                    strokeDasharray="4,4"
+                  />
+                )
+              })}
+            </>
+          )}
+
+          {/* Points & Labels */}
+          {points.map((pt) => {
+            const [px, py] = pt.coordinates
+            const svgX = toSvgX(px)
+            const svgY = toSvgY(py)
+
+            if (pt.id === 'query') {
+              return (
+                <g key={pt.id}>
+                  <path
+                    d={getStarPath(svgX, svgY, 5, 10, 4)}
+                    className="fill-accent-fill stroke-accent-fill"
+                    stroke="#087F8C"
+                    fill="#087F8C"
+                    strokeWidth={1.5}
+                  />
+                  <text
+                    x={svgX + 12}
+                    y={svgY + 4}
+                    textAnchor="start"
+                    className="text-[12px] font-bold fill-primary-text"
+                  >
+                    {pt.label}
+                  </text>
+                </g>
+              )
+            } else {
+              const isSelected = pt.id === selectedDocumentId
+              return (
+                <g key={pt.id}>
+                  <circle
+                    cx={svgX}
+                    cy={svgY}
+                    r={isSelected ? 8 : 6}
+                    className={cn(
+                      "stroke-primary-text transition-all",
+                      isSelected
+                        ? "fill-accent-fill stroke-accent-fill"
+                        : "fill-secondary"
+                    )}
+                    stroke={isSelected ? "#087F8C" : "#17212B"}
+                    fill={isSelected ? "#087F8C" : "#FFFFFF"}
+                    strokeWidth={2}
+                  />
+                  <text
+                    x={svgX + 10}
+                    y={svgY + 4}
+                    textAnchor="start"
+                    className={cn(
+                      "text-[12px] font-bold transition-all",
+                      isSelected ? "fill-accent-fill font-bold" : "fill-primary-text"
+                    )}
+                  >
+                    {pt.label}
+                  </text>
+                </g>
+              )
+            }
+          })}
+        </g>
+      </svg>
+
+      {/* Zoom Controls Overlay */}
+      <div className="absolute top-sm right-sm flex flex-col gap-xs bg-secondary/90 backdrop-blur-sm p-xs border border-border-custom rounded-[6px] shadow-sm z-10 select-none">
+        <button
+          type="button"
+          aria-label="Zoom In"
+          onClick={() => setZoom((z) => Math.min(z * 1.2, 5.0))}
+          className="w-8 h-8 flex items-center justify-center font-bold text-[16px] text-primary-text hover:bg-subtle-surface rounded-[4px] cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-fill transition-colors"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          aria-label="Zoom Out"
+          onClick={() => setZoom((z) => Math.max(z / 1.2, 0.5))}
+          className="w-8 h-8 flex items-center justify-center font-bold text-[16px] text-primary-text hover:bg-subtle-surface rounded-[4px] cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-fill transition-colors"
+        >
+          -
+        </button>
+        <button
+          type="button"
+          aria-label="Reset View"
+          onClick={() => {
+            setZoom(1.0)
+            setPan({ x: 0, y: 0 })
+          }}
+          className="w-8 h-8 flex items-center justify-center font-bold text-[14px] text-primary-text hover:bg-subtle-surface rounded-[4px] cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-fill transition-colors"
+        >
+          ↺
+        </button>
+      </div>
+    </div>
   )
 }
 

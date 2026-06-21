@@ -16,6 +16,65 @@ import {
   KeywordLimitationStep,
 } from './semantic-steps/SemanticVisualizationSteps'
 
+interface SemanticMetricToggleProps {
+  metric: 'euclidean' | 'cosine'
+  onChange: (metric: 'euclidean' | 'cosine') => void
+}
+
+export const SemanticMetricToggle: React.FC<SemanticMetricToggleProps> = ({ metric, onChange }) => {
+  const euclideanRef = React.useRef<HTMLButtonElement>(null)
+  const cosineRef = React.useRef<HTMLButtonElement>(null)
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault()
+      if (metric === 'euclidean') {
+        cosineRef.current?.focus()
+      } else {
+        euclideanRef.current?.focus()
+      }
+    }
+  }
+
+  return (
+    <div
+      role="group"
+      aria-label="Semantic metric"
+      className="flex bg-subtle-surface border border-border-custom rounded-md p-[4px] gap-[4px] shrink-0"
+      onKeyDown={handleKeyDown}
+    >
+      <button
+        ref={euclideanRef}
+        type="button"
+        tabIndex={metric === 'euclidean' ? 0 : -1}
+        aria-pressed={metric === 'euclidean'}
+        className={`px-sm py-[4px] rounded-sm text-xs font-weight-bold transition-all cursor-pointer ${
+          metric === 'euclidean'
+            ? 'bg-secondary text-primary-text shadow-sm'
+            : 'text-muted-text hover:text-primary-text'
+        }`}
+        onClick={() => onChange('euclidean')}
+      >
+        Euclidean distance
+      </button>
+      <button
+        ref={cosineRef}
+        type="button"
+        tabIndex={metric === 'cosine' ? 0 : -1}
+        aria-pressed={metric === 'cosine'}
+        className={`px-sm py-[4px] rounded-sm text-xs font-weight-bold transition-all cursor-pointer ${
+          metric === 'cosine'
+            ? 'bg-secondary text-primary-text shadow-sm'
+            : 'text-muted-text hover:text-primary-text'
+        }`}
+        onClick={() => onChange('cosine')}
+      >
+        Cosine similarity
+      </button>
+    </div>
+  )
+}
+
 interface VisualizationPanelProps {
   activeStepId: StepId
   activeStepTitle: string
@@ -25,6 +84,9 @@ interface VisualizationPanelProps {
   isEdited: boolean
   activeScenarioId?: string
   onSwitchToKeywordMissesMeaning?: () => void
+  semanticMetric: 'euclidean' | 'cosine'
+  onSemanticMetricChange: (metric: 'euclidean' | 'cosine') => void
+  onAnnounce?: (message: string) => void
 }
 
 export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
@@ -36,6 +98,9 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
   isEdited,
   activeScenarioId,
   onSwitchToKeywordMissesMeaning,
+  semanticMetric,
+  onSemanticMetricChange,
+  onAnnounce,
 }) => {
   const isSetup = activeStepId === 'setup'
 
@@ -59,13 +124,21 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
         </div>
       ) : (
         <div className="flex flex-col gap-xl transition-opacity duration-150 ease-in-out motion-reduce:transition-none">
-          <div className="flex flex-col gap-md">
-            <h2 className="text-heading font-weight-bold text-primary-text">
-              {activeStepTitle} is ready
-            </h2>
-            <p className="text-body text-muted-text">
-              This lesson view will show what the search engine calculates at this step.
-            </p>
+          <div className="flex flex-row justify-between items-start gap-md">
+            <div className="flex flex-col gap-md">
+              <h2 className="text-heading font-weight-bold text-primary-text">
+                {activeStepTitle} is ready
+              </h2>
+              <p className="text-body text-muted-text">
+                This lesson view will show what the search engine calculates at this step.
+              </p>
+            </div>
+            {(activeStepId === 'semantic-ranking' || activeStepId === 'final-comparison') && (
+              <SemanticMetricToggle
+                metric={semanticMetric}
+                onChange={onSemanticMetricChange}
+              />
+            )}
           </div>
 
           {/* Step content or Labeled Diagram Frame Placeholder */}
@@ -91,7 +164,7 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
           ) : activeStepId === 'meaning-vectors' ? (
             <MeaningVectorsStep semanticSnapshot={semanticSnapshot} isEdited={isEdited} />
           ) : activeStepId === 'semantic-ranking' ? (
-            <SemanticRankingStep semanticSnapshot={semanticSnapshot} isEdited={isEdited} />
+            <SemanticRankingStep semanticSnapshot={semanticSnapshot} isEdited={isEdited} onAnnounce={onAnnounce} />
           ) : (
             <div className="border border-dashed border-border-custom rounded-[8px] p-2xl flex items-center justify-center bg-subtle-surface">
               <span className="text-label text-muted-text uppercase tracking-wider">

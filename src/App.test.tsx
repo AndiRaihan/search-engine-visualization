@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, test } from 'vitest'
 import App from './App'
+import { scenarios } from '@/content/scenarios'
 
 test('full guided classroom flow regression test', async () => {
   const user = userEvent.setup()
@@ -166,6 +167,85 @@ test('guided flow semantic ranking integration test', async () => {
   // Verify Euclidean calculation breakdown panel is visible
   expect(screen.getByText(/Formula:/i)).toBeDefined()
   expect(screen.getByText(/Final Distance:/i)).toBeDefined()
+})
+
+test('guided flow metric persistence test', async () => {
+  const user = userEvent.setup()
+  render(<App />)
+
+  // Start search
+  const startButton = screen.getByRole('button', { name: /Start Search/i })
+  await user.click(startButton)
+
+  // Navigate to Semantic Ranking step (8 clicks from Tokenization)
+  const nextButton = screen.getByRole('button', { name: /Next step/i })
+  for (let i = 0; i < 8; i++) {
+    await user.click(nextButton)
+  }
+
+  // Verify we are on Semantic Ranking
+  expect(screen.getByRole('heading', { name: /Semantic Ranking is ready/i })).toBeDefined()
+
+  // Edit query text
+  const queryInput = screen.getByRole('textbox', { name: /^Query$/i })
+  await user.clear(queryInput)
+  await user.type(queryInput, 'custom query')
+
+  // Switch to Cosine similarity
+  const cosineButton = screen.getByRole('button', { name: /Cosine similarity/i })
+  await user.click(cosineButton)
+
+  // Verify it is selected (aria-pressed is true)
+  expect(cosineButton.getAttribute('aria-pressed')).toBe('true')
+
+  // Navigate away to Meaning Vectors (1 click back)
+  const prevButton = screen.getByRole('button', { name: /Previous step/i })
+  await user.click(prevButton)
+  expect(screen.getByRole('heading', { name: /Meaning Vectors is ready/i })).toBeDefined()
+
+  // Navigate back to Semantic Ranking
+  await user.click(nextButton)
+  expect(screen.getByRole('heading', { name: /Semantic Ranking is ready/i })).toBeDefined()
+
+  // Verify edited text, scenario, progress, and active metric persist
+  expect(queryInput.value).toBe('custom query')
+  const activeCosineButton = screen.getByRole('button', { name: /Cosine similarity/i })
+  expect(activeCosineButton.getAttribute('aria-pressed')).toBe('true')
+})
+
+test('zero vector cosine announcement test', async () => {
+  const user = userEvent.setup()
+  
+  // Mutate default scenario query vector to [0, 0] for this test
+  const originalQx = scenarios[0].vectors.query[0]
+  const originalQy = scenarios[0].vectors.query[1]
+  scenarios[0].vectors.query[0] = 0
+  scenarios[0].vectors.query[1] = 0
+
+  try {
+    render(<App />)
+
+    // Start search
+    const startButton = screen.getByRole('button', { name: /Start Search/i })
+    await user.click(startButton)
+
+    // Navigate to Semantic Ranking step (8 clicks from Tokenization)
+    const nextButton = screen.getByRole('button', { name: /Next step/i })
+    for (let i = 0; i < 8; i++) {
+      await user.click(nextButton)
+    }
+
+    // Switch to Cosine similarity
+    const cosineButton = screen.getByRole('button', { name: /Cosine similarity/i })
+    await user.click(cosineButton)
+
+    // Verify that the screen reader polite live region contains the announcement
+    expect(screen.getByText(/Selected vector has zero magnitude. Cosine similarity is defined as 0.000./i)).toBeDefined()
+  } finally {
+    // Restore
+    scenarios[0].vectors.query[0] = originalQx
+    scenarios[0].vectors.query[1] = originalQy
+  }
 })
 
 

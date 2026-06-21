@@ -14,7 +14,7 @@ Build the simulation as five vertical classroom slices. The first phase establis
 - [x] **Phase 1: Guided Classroom Shell** - Deliver a static, scenario-driven simulation that users can edit, reset, and navigate. (completed 2026-06-15)
 - [x] **Phase 2: Keyword Search Journey** - Teach tokenization through deterministic TF-IDF ranking with visible evidence. (completed 2026-06-16)
 - [x] **Phase 3: Euclidean Meaning Journey** - Bridge from keyword limitations to curated vectors and distance-based semantic ranking. (completed 2026-06-16)
-- [ ] **Phase 4: Cosine Comparison** - Add cosine similarity, metric switching, and trustworthy semantic explanations.
+- [x] **Phase 4: Cosine Comparison** - Add cosine similarity, metric switching, and trustworthy semantic explanations. (completed 2026-06-19)
 - [ ] **Phase 5: Final Comparison and Release Readiness** - Compare both ranking models and harden the complete classroom flow.
 
 ## Phase Details
@@ -107,33 +107,33 @@ Plans:
 - [x] 03-03: Add Euclidean calculations, distance lines/table, semantic ranking, and explanations.
 
 **Wave 4** *(blocked on Wave 3 completion)*
-
-- [ ] 03-04: Add interactive zoom, pan, and accessible control overlays to the SVG Meaning Map.
-
+ 
+- [x] 03-04: Add interactive zoom, pan, and accessible control overlays to the SVG Meaning Map.
+ 
 ### Phase 4: Cosine Comparison
-
+ 
 **Goal:** Users can switch the semantic model between Euclidean distance and cosine similarity and understand the selected ranking evidence.
 **Mode:** mvp
 **Depends on:** Phase 3
 **Requirements:** SEMA-06, SEMA-07, SEMA-08, QUAL-04
 **UI hint:** yes
 **Success Criteria** (what must be TRUE):
-
+ 
   1. User can inspect cosine similarity values for every document and see results ranked by highest similarity.
   2. User can toggle between Euclidean and cosine modes without changing the scenario or losing lesson progress.
   3. User can read semantic explanations that cite the currently displayed distance or similarity value.
   4. Automated unit tests verify tokenization, TF, document frequency, IDF, TF-IDF, Euclidean distance, cosine similarity, and deterministic rankings.
-
-**Plans:** 2 plans
-
+ 
+**Plans:** 2/2 plans complete
+ 
 Plans:
 **Wave 1**
-
-- [ ] 04-01: Implement cosine similarity, stable cosine ranking, and complete domain-engine unit coverage.
-
+ 
+- [x] 04-01: Implement cosine similarity, stable cosine ranking, and complete domain-engine unit coverage. (completed 2026-06-19)
+ 
 **Wave 2** *(blocked on Wave 1 completion)*
-
-- [ ] 04-02: Add the semantic metric toggle, cosine table/ranking, and selected-metric explanations.
+ 
+- [x] 04-02: Add the semantic metric toggle, cosine table/ranking, and selected-metric explanations. (completed 2026-06-19)
 
 ### Phase 5: Final Comparison and Release Readiness
 
@@ -173,5 +173,5 @@ Plans:
 | 1. Guided Classroom Shell | 3/3 | Complete   | 2026-06-15 |
 | 2. Keyword Search Journey | 3/3 | Complete   | 2026-06-16 |
 | 3. Euclidean Meaning Journey | 3/3 | Complete   | 2026-06-16 |
-| 4. Cosine Comparison | 0/2 | Not started | - |
+| 4. Cosine Comparison | 2/2 | Complete   | 2026-06-19 |
 | 5. Final Comparison and Release Readiness | 0/3 | Not started | - |

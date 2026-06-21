@@ -13,6 +13,7 @@ function renderPanel(activeStepId: any, activeStepTitle: string, snapshot: any, 
       documents: snapshot.documents.reduce((acc: any, doc: any) => ({ ...acc, [doc.id]: [0.5, 0.5] as [number, number] }), {}),
     },
     activeStepId,
+    semanticMetric: 'euclidean' as const,
   }
   const semanticSnapshot = buildSemanticSnapshot(session, snapshot)
   return render(
@@ -22,6 +23,8 @@ function renderPanel(activeStepId: any, activeStepTitle: string, snapshot: any, 
       keywordSnapshot={snapshot}
       semanticSnapshot={semanticSnapshot}
       isEdited={isEdited}
+      semanticMetric="euclidean"
+      onSemanticMetricChange={() => {}}
     />
   )
 }
@@ -244,6 +247,31 @@ describe('VisualizationPanel - Tokenization and Matching Steps', () => {
     const progressBars = screen.getAllByRole('progressbar')
     expect(progressBars[0].getAttribute('aria-valuenow')).toBe('0')
     expect(progressBars[1].getAttribute('aria-valuenow')).toBe('0')
+  })
+})
+
+describe('VisualizationPanel - Semantic Metric Toggle', () => {
+  test('metric toggle appears on semantic-ranking and final-comparison steps but not setup', () => {
+    const query = 'phone'
+    const documents = [
+      { id: 'doc1', title: 'Document 1', text: 'cell' }
+    ]
+    const snapshot = buildKeywordSnapshot(query, documents)
+
+    // 1. Setup step -> no toggle
+    const { unmount: unmountSetup } = renderPanel('setup', 'Setup', snapshot)
+    expect(screen.queryByRole('group', { name: /Semantic metric/i })).toBeNull()
+    unmountSetup()
+
+    // 2. Semantic Ranking step -> toggle is visible
+    const { unmount: unmountSemantic } = renderPanel('semantic-ranking', 'Semantic Ranking', snapshot)
+    expect(screen.getByRole('group', { name: /Semantic metric/i })).toBeDefined()
+    unmountSemantic()
+
+    // 3. Final Comparison step -> toggle is visible
+    const { unmount: unmountFinal } = renderPanel('final-comparison', 'Final Comparison', snapshot)
+    expect(screen.getByRole('group', { name: /Semantic metric/i })).toBeDefined()
+    unmountFinal()
   })
 })
 
