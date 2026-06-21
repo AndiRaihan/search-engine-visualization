@@ -8,6 +8,7 @@ import {
   selectProgress,
   buildKeywordSnapshot,
   buildSemanticSnapshot,
+  buildFinalComparisonSnapshot,
 } from '@/domain/simulation'
 import { scenarios, getScenarioById } from '@/content/scenarios'
 import { lessonSteps } from '@/content/lessonSteps'
@@ -47,6 +48,10 @@ export default function App() {
   const semanticSnapshot = useMemo(() => {
     return buildSemanticSnapshot(session, keywordSnapshot)
   }, [session, session.semanticMetric, keywordSnapshot])
+
+  const finalComparisonSnapshot = useMemo(() => {
+    return buildFinalComparisonSnapshot(keywordSnapshot, semanticSnapshot, session.semanticMetric)
+  }, [keywordSnapshot, semanticSnapshot, session.semanticMetric])
 
   const prevMetricRef = useRef(session.semanticMetric)
   useEffect(() => {
@@ -99,7 +104,109 @@ export default function App() {
     prevOpenRef.current = isResetDialogOpen
   }, [isResetDialogOpen, wasResetConfirmed])
 
+  const [isRunningAll, setIsRunningAll] = useState(false)
+  const autoplayTimerRef = useRef<any>(null)
+
+  const clearAutoplay = () => {
+    if (autoplayTimerRef.current) {
+      clearTimeout(autoplayTimerRef.current)
+      autoplayTimerRef.current = null
+    }
+    setIsRunningAll(false)
+  }
+
+  const handleCancelAutoplay = () => {
+    clearAutoplay()
+  }
+
+  const handleRunAll = () => {
+    const prefersReducedMotion = (typeof window !== 'undefined' && window.matchMedia)
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false
+    if (prefersReducedMotion) {
+      setAnnouncement('Autoplay started. Bypassing steps because of reduced motion preference.')
+      handleCancelAutoplay()
+      const currentIdx = lessonSteps.findIndex((s) => s.id === session.activeStepId)
+      const targetIdx = lessonSteps.findIndex((s) => s.id === 'final-comparison')
+      if (currentIdx !== -1 && targetIdx > currentIdx) {
+        for (let i = 0; i < targetIdx - currentIdx; i++) {
+          dispatch({ type: 'nextStep' })
+        }
+      }
+      return
+    }
+
+    if (isRunningAll) {
+      clearAutoplay()
+    } else {
+      setAnnouncement('Autoplay started.')
+      setIsRunningAll(true)
+    }
+  }
+
+  useEffect(() => {
+    if (!isRunningAll) return
+
+    if (session.activeStepId === 'final-comparison') {
+      clearAutoplay()
+      setAnnouncement('Autoplay completed. Simulation finished at final comparison.')
+      setTimeout(() => {
+        const heading = document.getElementById('final-comparison-heading') || stepHeadingRef.current
+        heading?.focus()
+      }, 0)
+      return
+    }
+
+    const delay = 800
+    autoplayTimerRef.current = setTimeout(() => {
+      dispatch({ type: 'nextStep' })
+    }, delay)
+
+    return () => {
+      if (autoplayTimerRef.current) {
+        clearTimeout(autoplayTimerRef.current)
+      }
+    }
+  }, [isRunningAll, session.activeStepId])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement
+      if (activeEl) {
+        const tagName = activeEl.tagName.toLowerCase()
+        const isContentEditable = activeEl.getAttribute('contenteditable') === 'true'
+        if (
+          tagName === 'input' ||
+          tagName === 'textarea' ||
+          isContentEditable
+        ) {
+          return
+        }
+      }
+
+      if (e.altKey) {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault()
+          handleCancelAutoplay()
+          dispatch({ type: 'previousStep' })
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault()
+          if (e.shiftKey) {
+            handleRunAll()
+          } else {
+            handleCancelAutoplay()
+            dispatch({ type: 'nextStep' })
+          }
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [session.activeStepId, isRunningAll])
+
   const handleResetClick = () => {
+    handleCancelAutoplay()
     if (isEdited) {
       setWasResetConfirmed(false)
       setIsResetDialogOpen(true)
@@ -113,6 +220,7 @@ export default function App() {
   }
 
   const handleConfirmReset = () => {
+    handleCancelAutoplay()
     setWasResetConfirmed(true)
     dispatch({ type: 'resetConfirmed', scenario: currentScenario })
     setIsResetDialogOpen(false)
@@ -123,6 +231,7 @@ export default function App() {
   }
 
   const handleSwitchToKeywordMissesMeaning = () => {
+    handleCancelAutoplay()
     const targetScenario = getScenarioById('keyword-misses-meaning')
     if (targetScenario) {
       dispatch({ type: 'scenarioSelected', scenario: targetScenario })
@@ -152,9 +261,9 @@ export default function App() {
         <InputPanel
           session={session}
           isEdited={isEdited}
-          onScenarioChange={(scenario) => dispatch({ type: 'scenarioSelected', scenario })}
-          onQueryChange={(value) => dispatch({ type: 'queryChanged', value })}
-          onDocumentChange={(documentId, value) => dispatch({ type: 'documentChanged', documentId, value })}
+          onScenarioChange={(scenario) => { handleCancelAutoplay(); dispatch({ type: 'scenarioSelected', scenario }); }}
+          onQueryChange={(value) => { handleCancelAutoplay(); dispatch({ type: 'queryChanged', value }); }}
+          onDocumentChange={(documentId, value) => { handleCancelAutoplay(); dispatch({ type: 'documentChanged', documentId, value }); }}
           onResetClick={handleResetClick}
           resetButtonRef={resetButtonRef}
           queryInputRef={queryInputRef}
@@ -173,18 +282,23 @@ export default function App() {
             activeStepDescription={
               session.activeStepId === 'semantic-ranking' && session.semanticMetric === 'cosine'
                 ? 'This step measures the direction alignment (cosine similarity) between the query and documents on the meaning map to rank them.'
+                : session.activeStepId === 'final-comparison'
+                ? `This step compares the keyword and semantic (${session.semanticMetric === 'cosine' ? 'cosine similarity' : 'Euclidean distance'}) rankings side-by-side to highlight their key differences.`
                 : activeStep.description
             }
             progress={selectProgress(session.activeStepId)}
             canGoPrevious={selectCanGoPrevious(session.activeStepId)}
             canGoNext={selectCanGoNext(session.activeStepId)}
-            onStartSearch={() => dispatch({ type: 'started' })}
-            onPreviousStep={() => dispatch({ type: 'previousStep' })}
-            onNextStep={() => dispatch({ type: 'nextStep' })}
+            onStartSearch={() => { handleCancelAutoplay(); dispatch({ type: 'started' }); }}
+            onPreviousStep={() => { handleCancelAutoplay(); dispatch({ type: 'previousStep' }); }}
+            onNextStep={() => { handleCancelAutoplay(); dispatch({ type: 'nextStep' }); }}
+            canRunAll={session.activeStepId !== 'final-comparison'}
+            isRunningAll={isRunningAll}
+            onRunAll={handleRunAll}
             stepHeadingRef={stepHeadingRef}
           />
         </section>
- 
+
         {/* Right Panel: Visualization */}
         <VisualizationPanel
           activeStepId={session.activeStepId}
@@ -192,11 +306,12 @@ export default function App() {
           setupHeadingRef={setupHeadingRef}
           keywordSnapshot={keywordSnapshot}
           semanticSnapshot={semanticSnapshot}
+          comparisonSnapshot={finalComparisonSnapshot}
           isEdited={isEdited}
           activeScenarioId={session.scenarioId}
           onSwitchToKeywordMissesMeaning={handleSwitchToKeywordMissesMeaning}
           semanticMetric={session.semanticMetric}
-          onSemanticMetricChange={(metric) => dispatch({ type: 'metricToggled', metric })}
+          onSemanticMetricChange={(metric) => { handleCancelAutoplay(); dispatch({ type: 'metricToggled', metric }); }}
         />
       </main>
 

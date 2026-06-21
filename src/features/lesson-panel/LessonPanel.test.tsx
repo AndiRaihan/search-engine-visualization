@@ -66,4 +66,58 @@ describe('LessonPanel Component', () => {
     await user.click(nextButton)
     expect(handleNext).toHaveBeenCalled()
   })
+
+  test('renders Run All button and shortcuts guide when onRunAll is provided', () => {
+    const handleRunAll = vi.fn()
+    render(
+      <LessonPanel
+        activeStepId="tokenization"
+        currentStepIndex={1}
+        totalSteps={10}
+        activeStepTitle="Tokenization"
+        activeStepDescription="Tokenization desc"
+        progress={10}
+        canGoPrevious={false}
+        canGoNext={true}
+        onStartSearch={vi.fn()}
+        onPreviousStep={vi.fn()}
+        onNextStep={vi.fn()}
+        canRunAll={true}
+        onRunAll={handleRunAll}
+      />
+    )
+
+    // Check Run All button using its accessible name (aria-label)
+    const runAllButton = screen.getByRole('button', { name: /Run entire simulation sequence/i })
+    expect(runAllButton).toBeDefined()
+
+    // Check guide is rendered by text content
+    expect(screen.getByText(/Shortcuts: Alt/i)).toBeDefined()
+  })
+
+  test('clicking Run All button calls onRunAll', async () => {
+    const handleRunAll = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <LessonPanel
+        activeStepId="tokenization"
+        currentStepIndex={1}
+        totalSteps={10}
+        activeStepTitle="Tokenization"
+        activeStepDescription="Tokenization desc"
+        progress={10}
+        canGoPrevious={false}
+        canGoNext={true}
+        onStartSearch={vi.fn()}
+        onPreviousStep={vi.fn()}
+        onNextStep={vi.fn()}
+        canRunAll={true}
+        onRunAll={handleRunAll}
+      />
+    )
+
+    const runAllButton = screen.getByRole('button', { name: /Run entire simulation sequence/i })
+    await user.click(runAllButton)
+    expect(handleRunAll).toHaveBeenCalled()
+  })
 })

@@ -595,8 +595,6 @@ export function rankByCosineSimilarity(
 }
 
 export function buildCosineBreakdown(
-  queryLabel: string,
-  docLabel: string,
   queryCoords: Vector2D,
   docCoords: Vector2D
 ): CosineBreakdown {
@@ -683,7 +681,7 @@ export function buildSemanticSnapshot(
     const similarity = rankedItem.similarity ?? cosineSimilarity(session.vectors.query, vector)
     
     const breakdown = buildEuclideanBreakdown('Query', docLabel, session.vectors.query, vector)
-    const cosineBreakdown = buildCosineBreakdown('Query', docLabel, session.vectors.query, vector)
+    const cosineBreakdown = buildCosineBreakdown(session.vectors.query, vector)
 
     return {
       id: rankedItem.id,
@@ -727,7 +725,7 @@ export function buildSemanticSnapshot(
   const defaultCosineBreakdown =
     rankedDocuments.length > 0
       ? rankedDocuments[0].cosineBreakdown
-      : buildCosineBreakdown('Query', 'D1', session.vectors.query, [0, 0])
+      : buildCosineBreakdown(session.vectors.query, [0, 0])
 
   return {
     queryPoint,
@@ -739,5 +737,97 @@ export function buildSemanticSnapshot(
     metric,
   }
 }
+
+// Phase 5 Final Comparison Types & Selector
+
+export interface FinalComparisonRow {
+  id: string
+  title?: string
+  text: string
+  originalIndex: number
+  documentLabel: string
+  keywordRank: number
+  semanticRank: number
+  rankDelta: number
+  movementDirection: 'up' | 'down' | 'none'
+  movementLabel: string
+  keywordScore: number
+  semanticMetricLabel: string
+  semanticMetricValue: number
+  keywordExplanation: string
+  semanticExplanation: string
+  keywordContributions: Record<string, KeywordTermContribution>
+  semanticCoordinates: Vector2D
+  euclideanBreakdown: EuclideanBreakdown
+  cosineBreakdown?: CosineBreakdown
+}
+
+export interface FinalComparisonSnapshot {
+  rows: FinalComparisonRow[]
+  metric: 'euclidean' | 'cosine'
+}
+
+export function buildFinalComparisonSnapshot(
+  keywordSnapshot: KeywordSnapshot,
+  semanticSnapshot: SemanticSnapshot,
+  metric: 'euclidean' | 'cosine'
+): FinalComparisonSnapshot {
+  const rows: FinalComparisonRow[] = keywordSnapshot.documents.map((kwDoc) => {
+    const kwRanked = keywordSnapshot.rankedDocuments.find((rd) => rd.id === kwDoc.id)!
+    const semRanked = semanticSnapshot.rankedDocuments.find((rd) => rd.id === kwDoc.id)!
+
+    const keywordRank = kwRanked.rank
+    const semanticRank = semRanked.rank
+    const rankDelta = keywordRank - semanticRank
+
+    let movementDirection: 'up' | 'down' | 'none' = 'none'
+    let movementLabel = 'No change'
+    if (rankDelta > 0) {
+      movementDirection = 'up'
+      movementLabel = `Moved up ${rankDelta}`
+    } else if (rankDelta < 0) {
+      movementDirection = 'down'
+      movementLabel = `Moved down ${Math.abs(rankDelta)}`
+    }
+
+    const semanticMetricLabel = metric === 'cosine' ? 'Similarity' : 'Distance'
+    const semanticMetricValue = metric === 'cosine'
+      ? (semRanked.similarity ?? 0)
+      : semRanked.distance
+
+    const semValueFormatted = formatThreeDecimals(semanticMetricValue)
+
+    const keywordExplanation = kwRanked.explanation
+    const semanticExplanation = `${semanticMetricLabel}: ${semValueFormatted}`
+
+    return {
+      id: kwDoc.id,
+      title: kwDoc.title,
+      text: kwDoc.text,
+      originalIndex: kwDoc.originalIndex,
+      documentLabel: `D${kwDoc.originalIndex + 1}`,
+      keywordRank,
+      semanticRank,
+      rankDelta,
+      movementDirection,
+      movementLabel,
+      keywordScore: kwDoc.score,
+      semanticMetricLabel,
+      semanticMetricValue,
+      keywordExplanation,
+      semanticExplanation,
+      keywordContributions: kwDoc.contributions,
+      semanticCoordinates: semRanked.coordinates,
+      euclideanBreakdown: semRanked.breakdown,
+      cosineBreakdown: semRanked.cosineBreakdown,
+    }
+  })
+
+  return {
+    rows,
+    metric,
+  }
+}
+
 
 

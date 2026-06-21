@@ -24,8 +24,9 @@ import {
   cosineSimilarity,
   rankByCosineSimilarity,
   buildCosineBreakdown,
+  buildFinalComparisonSnapshot,
 } from './simulation'
-import type { Scenario, KeywordDocumentSnapshot, CosineBreakdown } from './simulation'
+import type { Scenario, KeywordDocumentSnapshot } from './simulation'
 import { scenarios } from '@/content/scenarios'
 import { buildKeywordStepSession } from '../test/keyword-step-session'
 
@@ -488,7 +489,7 @@ describe('Phase 4 - Cosine similarity and ranking', () => {
   })
 
   test('cosine: cosine breakdown exposes formula, dot product, query length, doc length, denominator, and final similarity', () => {
-    const breakdown = buildCosineBreakdown('Query', 'D1', [0.80, 0.60], [0.60, 0.80])
+    const breakdown = buildCosineBreakdown([0.80, 0.60], [0.60, 0.80])
     
     // Formula check
     expect(breakdown.formula).toBe('\\text{sim}(\\mathbf{q}, \\mathbf{d}) = \\frac{\\mathbf{q} \\cdot \\mathbf{d}}{\\|\\mathbf{q}\\| \\|\\mathbf{d}\\|}')
@@ -555,6 +556,114 @@ describe('Phase 4 - Cosine similarity and ranking', () => {
 
     const toggledState2 = simulationReducer(toggledState1, { type: 'metricToggled' })
     expect(toggledState2.semanticMetric).toBe('euclidean')
+  })
+
+  describe('final comparison selector', () => {
+    test('joins keyword and selected semantic rankings correctly', () => {
+      const session = buildSessionFromScenario(scenarios[0])
+      const kwSnapshot = buildKeywordSnapshot(session.query, session.documents)
+      const semSnapshot = buildSemanticSnapshot(session, kwSnapshot)
+
+      const finalSnapshot = buildFinalComparisonSnapshot(kwSnapshot, semSnapshot, 'euclidean')
+
+      expect(finalSnapshot.metric).toBe('euclidean')
+      expect(finalSnapshot.rows.length).toBe(session.documents.length)
+
+      // Check row properties
+      const firstRow = finalSnapshot.rows[0]
+      expect(firstRow).toHaveProperty('id')
+      expect(firstRow).toHaveProperty('documentLabel')
+      expect(firstRow.documentLabel).toMatch(/^D\d+$/)
+      expect(firstRow).toHaveProperty('keywordRank')
+      expect(firstRow).toHaveProperty('semanticRank')
+      expect(firstRow).toHaveProperty('rankDelta')
+      expect(firstRow).toHaveProperty('movementDirection')
+      expect(firstRow).toHaveProperty('movementLabel')
+      expect(firstRow).toHaveProperty('keywordScore')
+      expect(firstRow).toHaveProperty('semanticMetricLabel')
+      expect(firstRow.semanticMetricLabel).toBe('Distance')
+      expect(firstRow).toHaveProperty('semanticMetricValue')
+      expect(firstRow).toHaveProperty('keywordExplanation')
+      expect(firstRow).toHaveProperty('semanticExplanation')
+      expect(firstRow).toHaveProperty('keywordContributions')
+      expect(firstRow).toHaveProperty('semanticCoordinates')
+      expect(firstRow).toHaveProperty('euclideanBreakdown')
+    })
+
+    test('rank movement uses keywordRank - semanticRank', () => {
+      const fakeKwSnapshot = {
+        queryTokens: [],
+        queryTerms: [],
+        termStatistics: {},
+        documents: [
+          { id: 'doc1', title: 'Doc 1', text: 'Text 1', originalIndex: 0, tokens: [], matchSummary: { matchedTerms: [], missingTerms: [] }, contributions: {}, score: 1 },
+          { id: 'doc2', title: 'Doc 2', text: 'Text 2', originalIndex: 1, tokens: [], matchSummary: { matchedTerms: [], missingTerms: [] }, contributions: {}, score: 2 },
+          { id: 'doc3', title: 'Doc 3', text: 'Text 3', originalIndex: 2, tokens: [], matchSummary: { matchedTerms: [], missingTerms: [] }, contributions: {}, score: 3 },
+        ],
+        rankedDocuments: [
+          { id: 'doc3', title: 'Doc 3', text: 'Text 3', originalIndex: 2, score: 3, rank: 1, explanation: 'Rank 1' },
+          { id: 'doc2', title: 'Doc 2', text: 'Text 2', originalIndex: 1, score: 2, rank: 2, explanation: 'Rank 2' },
+          { id: 'doc1', title: 'Doc 1', text: 'Text 1', originalIndex: 0, score: 1, rank: 3, explanation: 'Rank 3' },
+        ],
+        maxScore: 3,
+      } as any
+
+      const fakeSemSnapshot = {
+        queryPoint: { id: 'query', label: 'Query', coordinates: [0, 0] },
+        documentPoints: [],
+        rankedDocuments: [
+          { id: 'doc1', title: 'Doc 1', text: 'Text 1', originalIndex: 0, distance: 0.1, rank: 1, coordinates: [1, 1], breakdown: {} },
+          { id: 'doc2', title: 'Doc 2', text: 'Text 2', originalIndex: 1, distance: 0.2, rank: 2, coordinates: [2, 2], breakdown: {} },
+          { id: 'doc3', title: 'Doc 3', text: 'Text 3', originalIndex: 2, distance: 0.3, rank: 3, coordinates: [3, 3], breakdown: {} },
+        ],
+        missedDocuments: [],
+        defaultBreakdown: {},
+        metric: 'euclidean',
+      } as any
+
+      const finalSnapshot = buildFinalComparisonSnapshot(fakeKwSnapshot, fakeSemSnapshot, 'euclidean')
+
+      // doc1: kwRank 3, semRank 1. Delta: 3 - 1 = +2 (Moved up 2)
+      const doc1Row = finalSnapshot.rows.find((r) => r.id === 'doc1')!
+      expect(doc1Row.keywordRank).toBe(3)
+      expect(doc1Row.semanticRank).toBe(1)
+      expect(doc1Row.rankDelta).toBe(2)
+      expect(doc1Row.movementDirection).toBe('up')
+      expect(doc1Row.movementLabel).toBe('Moved up 2')
+
+      // doc2: kwRank 2, semRank 2. Delta: 2 - 2 = 0 (No change)
+      const doc2Row = finalSnapshot.rows.find((r) => r.id === 'doc2')!
+      expect(doc2Row.keywordRank).toBe(2)
+      expect(doc2Row.semanticRank).toBe(2)
+      expect(doc2Row.rankDelta).toBe(0)
+      expect(doc2Row.movementDirection).toBe('none')
+      expect(doc2Row.movementLabel).toBe('No change')
+
+      // doc3: kwRank 1, semRank 3. Delta: 1 - 3 = -2 (Moved down 2)
+      const doc3Row = finalSnapshot.rows.find((r) => r.id === 'doc3')!
+      expect(doc3Row.keywordRank).toBe(1)
+      expect(doc3Row.semanticRank).toBe(3)
+      expect(doc3Row.rankDelta).toBe(-2)
+      expect(doc3Row.movementDirection).toBe('down')
+      expect(doc3Row.movementLabel).toBe('Moved down 2')
+    })
+
+    test('explanations and labels adjust based on active metric (euclidean vs cosine)', () => {
+      const session = buildSessionFromScenario(scenarios[0])
+      const kwSnapshot = buildKeywordSnapshot(session.query, session.documents)
+
+      // Test Euclidean
+      const semSnapshotEuc = buildSemanticSnapshot({ ...session, semanticMetric: 'euclidean' }, kwSnapshot)
+      const finalSnapshotEuc = buildFinalComparisonSnapshot(kwSnapshot, semSnapshotEuc, 'euclidean')
+      expect(finalSnapshotEuc.rows[0].semanticMetricLabel).toBe('Distance')
+      expect(finalSnapshotEuc.rows[0].semanticExplanation).toContain('Distance:')
+
+      // Test Cosine
+      const semSnapshotCos = buildSemanticSnapshot({ ...session, semanticMetric: 'cosine' }, kwSnapshot)
+      const finalSnapshotCos = buildFinalComparisonSnapshot(kwSnapshot, semSnapshotCos, 'cosine')
+      expect(finalSnapshotCos.rows[0].semanticMetricLabel).toBe('Similarity')
+      expect(finalSnapshotCos.rows[0].semanticExplanation).toContain('Similarity:')
+    })
   })
 })
 

@@ -17,6 +17,9 @@ interface LessonPanelProps {
   onPreviousStep: () => void
   onNextStep: () => void
   stepHeadingRef?: React.RefObject<HTMLHeadingElement | null>
+  canRunAll?: boolean
+  isRunningAll?: boolean
+  onRunAll?: () => void
 }
 
 export const LessonPanel: React.FC<LessonPanelProps> = ({
@@ -32,6 +35,9 @@ export const LessonPanel: React.FC<LessonPanelProps> = ({
   onPreviousStep,
   onNextStep,
   stepHeadingRef,
+  canRunAll = false,
+  isRunningAll = false,
+  onRunAll,
 }) => {
   if (activeStepId === 'setup') {
     return (
@@ -42,12 +48,41 @@ export const LessonPanel: React.FC<LessonPanelProps> = ({
             Choose a scenario on the left, then click Start Search to begin.
           </p>
         </div>
-        <Button
-          onClick={onStartSearch}
-          className="w-full min-h-[44px] bg-accent-fill hover:bg-accent-fill/90 text-accent-contrast font-weight-bold rounded-[4px] cursor-pointer"
-        >
-          Start Search
-        </Button>
+        <div className="flex flex-col gap-md">
+          <div className="flex gap-sm">
+            <Button
+              onClick={onStartSearch}
+              className="flex-1 min-h-[44px] bg-accent-fill hover:bg-accent-fill/90 text-accent-contrast font-weight-bold rounded-[4px] cursor-pointer"
+            >
+              Start Search
+            </Button>
+            {onRunAll && (
+              <Button
+                disabled={!canRunAll && !isRunningAll}
+                onClick={onRunAll}
+                aria-label="Run entire simulation sequence"
+                aria-live="polite"
+                className={`min-h-[44px] font-weight-bold rounded-[4px] cursor-pointer border shadow-none px-md ${
+                  isRunningAll
+                    ? 'bg-accent-fill text-accent-contrast border-accent-fill'
+                    : canRunAll
+                    ? 'bg-secondary text-primary-text border-border-custom hover:bg-subtle-surface'
+                    : 'bg-subtle-surface text-muted-text border-border-custom cursor-not-allowed opacity-50'
+                }`}
+              >
+                {isRunningAll ? 'Pause' : 'Run All'}
+              </Button>
+            )}
+          </div>
+          {onRunAll && (
+            <div
+              aria-label="Keyboard shortcuts guide"
+              className="border-l-2 border-border-custom pl-sm text-xs text-muted-text py-[2px]"
+            >
+              Shortcuts: Alt+← Previous | Alt+→ Next | Alt+Shift+→ Run All
+            </div>
+          )}
+        </div>
       </div>
     )
   }
@@ -100,29 +135,58 @@ export const LessonPanel: React.FC<LessonPanelProps> = ({
         </div>
       </div>
 
-      <div className="flex gap-sm">
-        <Button
-          disabled={!canGoPrevious}
-          onClick={onPreviousStep}
-          className={`flex-1 min-h-[44px] font-weight-bold rounded-[4px] cursor-pointer border border-border-custom shadow-none ${
-            canGoPrevious
-              ? 'bg-secondary text-primary-text hover:bg-subtle-surface'
-              : 'bg-subtle-surface text-muted-text cursor-not-allowed opacity-50'
-          }`}
-        >
-          Previous step
-        </Button>
-        <Button
-          disabled={!canGoNext}
-          onClick={onNextStep}
-          className={`flex-1 min-h-[44px] font-weight-bold rounded-[4px] cursor-pointer border border-border-custom shadow-none ${
-            canGoNext
-              ? 'bg-secondary text-primary-text hover:bg-subtle-surface'
-              : 'bg-subtle-surface text-muted-text cursor-not-allowed opacity-50'
-          }`}
-        >
-          Next step
-        </Button>
+      <div className="flex flex-col gap-md">
+        <div className="flex items-center gap-sm flex-wrap">
+          <div className="flex gap-sm flex-1 min-w-[200px]">
+            <Button
+              disabled={!canGoPrevious}
+              onClick={onPreviousStep}
+              className={`flex-1 min-h-[44px] font-weight-bold rounded-[4px] cursor-pointer border border-border-custom shadow-none ${
+                canGoPrevious
+                  ? 'bg-secondary text-primary-text hover:bg-subtle-surface'
+                  : 'bg-subtle-surface text-muted-text cursor-not-allowed opacity-50'
+              }`}
+            >
+              Previous step
+            </Button>
+            <Button
+              disabled={!canGoNext}
+              onClick={onNextStep}
+              className={`flex-1 min-h-[44px] font-weight-bold rounded-[4px] cursor-pointer border border-border-custom shadow-none ${
+                canGoNext
+                  ? 'bg-secondary text-primary-text hover:bg-subtle-surface'
+                  : 'bg-subtle-surface text-muted-text cursor-not-allowed opacity-50'
+              }`}
+            >
+              Next step
+            </Button>
+            {onRunAll && (
+              <Button
+                disabled={!canRunAll && !isRunningAll}
+                onClick={onRunAll}
+                aria-label="Run entire simulation sequence"
+                aria-live="polite"
+                className={`min-h-[44px] font-weight-bold rounded-[4px] cursor-pointer border shadow-none px-md ${
+                  isRunningAll
+                    ? 'bg-accent-fill text-accent-contrast border-accent-fill'
+                    : canRunAll
+                    ? 'bg-secondary text-primary-text border-border-custom hover:bg-subtle-surface'
+                    : 'bg-subtle-surface text-muted-text border-border-custom cursor-not-allowed opacity-50'
+                }`}
+              >
+                {isRunningAll ? 'Pause' : 'Run All'}
+              </Button>
+            )}
+          </div>
+          {onRunAll && (
+            <div
+              aria-label="Keyboard shortcuts guide"
+              className="border-l-2 border-border-custom pl-sm text-xs text-muted-text py-[2px] shrink-0"
+            >
+              Shortcuts: Alt+← Previous | Alt+→ Next | Alt+Shift+→ Run All
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

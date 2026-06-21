@@ -1,8 +1,21 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { expect, test } from 'vitest'
+import { expect, test, vi, beforeAll } from 'vitest'
 import App from './App'
 import { scenarios } from '@/content/scenarios'
+
+beforeAll(() => {
+  window.matchMedia = window.matchMedia || vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }))
+})
 
 test('full guided classroom flow regression test', async () => {
   const user = userEvent.setup()
@@ -208,7 +221,7 @@ test('guided flow metric persistence test', async () => {
   expect(screen.getByRole('heading', { name: /Semantic Ranking is ready/i })).toBeDefined()
 
   // Verify edited text, scenario, progress, and active metric persist
-  expect(queryInput.value).toBe('custom query')
+  expect((queryInput as HTMLTextAreaElement).value).toBe('custom query')
   const activeCosineButton = screen.getByRole('button', { name: /Cosine similarity/i })
   expect(activeCosineButton.getAttribute('aria-pressed')).toBe('true')
 })
@@ -247,5 +260,113 @@ test('zero vector cosine announcement test', async () => {
     scenarios[0].vectors.query[1] = originalQy
   }
 })
+
+test('Run All autoplay sequence advances steps at ~800ms intervals and cancels on edit/navigation', () => {
+  vi.useFakeTimers()
+  render(<App />)
+
+  // Start search
+  const startButton = screen.getByRole('button', { name: /Start Search/i })
+  act(() => {
+    fireEvent.click(startButton)
+  })
+  expect(screen.getByRole('heading', { name: /Tokenization is ready/i })).toBeDefined()
+
+  // Trigger Run All
+  const runAllButton = screen.getByRole('button', { name: /Run entire simulation sequence/i })
+  act(() => {
+    fireEvent.click(runAllButton)
+  })
+
+  // Timer advances to next step (Matching)
+  act(() => {
+    vi.advanceTimersByTime(800)
+  })
+  expect(screen.getByRole('heading', { name: /Word Matching is ready/i })).toBeDefined()
+
+  // Timer advances again (Term Frequency)
+  act(() => {
+    vi.advanceTimersByTime(800)
+  })
+  expect(screen.getByRole('heading', { name: /Term Frequency is ready/i })).toBeDefined()
+
+  // Now edit query input, which should cancel autoplay
+  const queryInput = screen.getByLabelText(/Query/i)
+  act(() => {
+    fireEvent.change(queryInput, { target: { value: 'custom change' } })
+  })
+
+  // Advance timer again. It should NOT advance to next step because autoplay is cancelled!
+  act(() => {
+    vi.advanceTimersByTime(800)
+  })
+  expect(screen.getByRole('heading', { name: /Term Frequency is ready/i })).toBeDefined()
+
+  vi.useRealTimers()
+})
+
+test('keyboard shortcuts Alt+ArrowRight, Alt+ArrowLeft, Alt+Shift+ArrowRight trigger navigation and Run All', () => {
+  render(<App />)
+
+  // Click start search
+  const startButton = screen.getByRole('button', { name: /Start Search/i })
+  act(() => {
+    fireEvent.click(startButton)
+  })
+  expect(screen.getByRole('heading', { name: /Tokenization is ready/i })).toBeDefined()
+
+  // Trigger Alt+ArrowRight -> should go to Word Matching
+  act(() => {
+    fireEvent.keyDown(window, { key: 'ArrowRight', altKey: true })
+  })
+  expect(screen.getByRole('heading', { name: /Word Matching is ready/i })).toBeDefined()
+
+  // Trigger Alt+ArrowLeft -> should go back to Tokenization
+  act(() => {
+    fireEvent.keyDown(window, { key: 'ArrowLeft', altKey: true })
+  })
+  expect(screen.getByRole('heading', { name: /Tokenization is ready/i })).toBeDefined()
+
+  // Trigger Alt+Shift+ArrowRight -> should start Run All (reduced-motion default is false, so it starts timer)
+  act(() => {
+    fireEvent.keyDown(window, { key: 'ArrowRight', altKey: true, shiftKey: true })
+  })
+  // The play button should be in active/pause state
+  expect(screen.getByRole('button', { name: /Run entire simulation sequence/i }).textContent).toBe('Pause')
+})
+
+test('reduced-motion preference instantly jumps to final comparison step', () => {
+  const originalMatchMedia = window.matchMedia
+  window.matchMedia = vi.fn().mockImplementation((query) => ({
+    matches: query === '(prefers-reduced-motion: reduce)',
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }))
+
+  try {
+    render(<App />)
+    const startButton = screen.getByRole('button', { name: /Start Search/i })
+    act(() => {
+      fireEvent.click(startButton)
+    })
+
+    const runAllButton = screen.getByRole('button', { name: /Run entire simulation sequence/i })
+    act(() => {
+      fireEvent.click(runAllButton)
+    })
+
+    // Should instantly jump to Final Comparison without waiting
+    expect(screen.getByRole('heading', { name: /Final Comparison is ready/i })).toBeDefined()
+  } finally {
+    window.matchMedia = originalMatchMedia
+  }
+})
+
+
 
 

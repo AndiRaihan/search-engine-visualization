@@ -1,5 +1,5 @@
 import React from 'react'
-import type { StepId, KeywordSnapshot, SemanticSnapshot } from '@/domain/simulation'
+import type { StepId, KeywordSnapshot, SemanticSnapshot, FinalComparisonSnapshot } from '@/domain/simulation'
 import {
   TokenizationStep,
   MatchingStep,
@@ -15,6 +15,8 @@ import {
   SemanticRankingStep,
   KeywordLimitationStep,
 } from './semantic-steps/SemanticVisualizationSteps'
+import { FinalComparisonStep } from './final-comparison/FinalComparisonStep'
+import { buildFinalComparisonSnapshot } from '@/domain/simulation'
 
 interface SemanticMetricToggleProps {
   metric: 'euclidean' | 'cosine'
@@ -81,6 +83,7 @@ interface VisualizationPanelProps {
   setupHeadingRef?: React.RefObject<HTMLHeadingElement | null>
   keywordSnapshot: KeywordSnapshot
   semanticSnapshot: SemanticSnapshot
+  comparisonSnapshot?: FinalComparisonSnapshot
   isEdited: boolean
   activeScenarioId?: string
   onSwitchToKeywordMissesMeaning?: () => void
@@ -95,6 +98,7 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
   setupHeadingRef,
   keywordSnapshot,
   semanticSnapshot,
+  comparisonSnapshot,
   isEdited,
   activeScenarioId,
   onSwitchToKeywordMissesMeaning,
@@ -103,6 +107,11 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
   onAnnounce,
 }) => {
   const isSetup = activeStepId === 'setup'
+
+  const resolvedComparisonSnapshot = React.useMemo(() => {
+    if (comparisonSnapshot) return comparisonSnapshot
+    return buildFinalComparisonSnapshot(keywordSnapshot, semanticSnapshot, semanticMetric)
+  }, [comparisonSnapshot, keywordSnapshot, semanticSnapshot, semanticMetric])
 
   return (
     <section
@@ -165,6 +174,8 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
             <MeaningVectorsStep semanticSnapshot={semanticSnapshot} isEdited={isEdited} />
           ) : activeStepId === 'semantic-ranking' ? (
             <SemanticRankingStep semanticSnapshot={semanticSnapshot} isEdited={isEdited} onAnnounce={onAnnounce} />
+          ) : activeStepId === 'final-comparison' ? (
+            <FinalComparisonStep comparisonSnapshot={resolvedComparisonSnapshot} />
           ) : (
             <div className="border border-dashed border-border-custom rounded-[8px] p-2xl flex items-center justify-center bg-subtle-surface">
               <span className="text-label text-muted-text uppercase tracking-wider">
