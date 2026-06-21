@@ -23,7 +23,7 @@ export const ResetScenarioDialog: React.FC<ResetScenarioDialogProps> = ({
 }) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="bg-secondary border border-border-custom rounded-[12px] p-lg max-w-md">
+      <AlertDialogContent className="bg-secondary border border-border-custom rounded-[12px] p-lg">
         <AlertDialogHeader className="text-left">
           <AlertDialogTitle className="text-heading font-bold text-primary-text">
             Reset edited scenario?

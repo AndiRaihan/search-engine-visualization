@@ -23,7 +23,20 @@ test.describe('Search Engine Simulation Smoke Tests', () => {
     // 4. Click Reset and cancel/confirm reset
     await page.click('button:has-text("Reset scenario")');
     // Confirm dialog is open
-    await expect(page.getByRole('heading', { name: 'Reset edited scenario?', exact: true })).toBeVisible();
+    const resetDialog = page.getByRole('alertdialog');
+    await expect(resetDialog.getByRole('heading', { name: 'Reset edited scenario?', exact: true })).toBeVisible();
+
+    // The dialog surface must contain its text and actions. This catches size-token
+    // regressions that otherwise collapse the surface while content overflows.
+    const dialogBounds = await resetDialog.boundingBox();
+    const dialogChildren = await resetDialog.locator('button, [data-slot="alert-dialog-description"]').all();
+    expect(dialogBounds).not.toBeNull();
+    for (const child of dialogChildren) {
+      const childBounds = await child.boundingBox();
+      expect(childBounds).not.toBeNull();
+      expect(childBounds!.x).toBeGreaterThanOrEqual(dialogBounds!.x);
+      expect(childBounds!.x + childBounds!.width).toBeLessThanOrEqual(dialogBounds!.x + dialogBounds!.width);
+    }
     
     // Click "Keep edits" to cancel reset
     await page.click('text="Keep edits"');
